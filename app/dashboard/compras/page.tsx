@@ -13,7 +13,9 @@ export default async function ComprasPage() {
   const sql = getDb()
   const compras = await sql`
     SELECT c.*, l.codigo as lote_codigo, l.ubicacion as lote_ubicacion,
-      (SELECT COALESCE(SUM(monto), 0) FROM pagos WHERE compra_id = c.id AND estado = 'aprobado') as total_pagado
+      (SELECT COALESCE(SUM(monto), 0) FROM pagos WHERE compra_id = c.id AND estado = 'aprobado') as total_pagado,
+      (SELECT COALESCE(COUNT(*), 0) FROM pagos WHERE compra_id = c.id AND estado = 'aprobado' AND tipo = 'cuota_normal') as cuotas_pagadas,
+      (SELECT COALESCE(COUNT(*), 0) FROM pagos WHERE compra_id = c.id AND estado = 'aprobado' AND tipo = 'cuota_inicial') as cuota_inicial_pagada
     FROM compras c
     JOIN lotes l ON c.lote_id = l.id
     WHERE c.cliente_id = ${session.userId}
@@ -75,17 +77,19 @@ export default async function ComprasPage() {
                     </div>
                   </div>
 
-                  <div className="mt-6">
-                    <div className="mb-2 flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Progreso de pago</span>
-                      <span className="font-medium text-foreground">{porcentaje}%</span>
-                    </div>
-                    <Progress value={porcentaje} className="h-2" />
-                    <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
-                      <span>Pagado: {formatCurrency(totalPagado)}</span>
-                      <span>Pendiente: {formatCurrency(Number(compra.saldo_pendiente))}</span>
-                    </div>
-                  </div>
+                        <div className="mt-6">
+                          <div className="mb-2 flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Progreso de pago</span>
+                            <span className="font-medium text-foreground">{porcentaje}%</span>
+                          </div>
+                          <Progress value={porcentaje} className="h-2" />
+                          <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                            <div>Pagado: {formatCurrency(totalPagado)}</div>
+                            <div>Pendiente: {formatCurrency(Number(compra.saldo_pendiente))}</div>
+                            <div>Cuota inicial: {compra.cuota_inicial_pagada ? 'Pagada' : 'Pendiente'}</div>
+                            <div>Cuotas restantes: {Math.max(Number(compra.num_cuotas) - Number(compra.cuotas_pagadas), 0)}</div>
+                          </div>
+                        </div>
                 </CardContent>
               </Card>
             )

@@ -11,7 +11,7 @@ INSERT INTO etapas (nombre, descripcion, orden, activa) VALUES
 INSERT INTO lotes (codigo, area_m2, ubicacion, valor, estado, etapa_id, descripcion) VALUES
 ('L-001', 120.00, 'Manzana A, Lote 1 - Esquinero', 85000000.00, 'disponible', 1, 'Lote esquinero con vista al parque principal. Excelente ubicacion y ventilacion.'),
 ('L-002', 100.00, 'Manzana A, Lote 2', 72000000.00, 'disponible', 1, 'Lote intermedio con acceso directo a via principal.'),
-('L-003', 150.00, 'Manzana A, Lote 3 - Esquinero', 98000000.00, 'reservado', 1, 'Amplio lote esquinero ideal para casa de dos pisos.'),
+('L-003', 150.00, 'Manzana A, Lote 3 - Esquinero', 98000000.00, 'reservado', 1, 'Amplio lote esquinero ideal para vivienda familiar.'),
 ('L-004', 110.00, 'Manzana B, Lote 1', 76000000.00, 'disponible', 2, 'Lote con excelente orientacion solar y cercania a zona verde.'),
 ('L-005', 130.00, 'Manzana B, Lote 2', 89000000.00, 'disponible', 2, 'Lote amplio con posibilidad de ampliacion futura.'),
 ('L-006', 200.00, 'Manzana B, Lote 3 - Premium', 135000000.00, 'disponible', 2, 'Lote premium de gran tamanio con vista panoramica.'),
@@ -27,6 +27,6 @@ INSERT INTO usuarios (nombre, apellido, email, telefono, password_hash, rol, ver
 
 -- Planos de vivienda
 INSERT INTO planos (nombre, descripcion, imagen_url) VALUES
-('Casa Tipo A - Clasica', 'Vivienda de un piso, 3 habitaciones, 2 banos, sala-comedor, cocina integral, patio trasero. Area: 85m2.', NULL),
-('Casa Tipo B - Moderna', 'Vivienda de dos pisos, 4 habitaciones, 3 banos, estudio, sala-comedor amplia, cocina integral, garaje. Area: 120m2.', NULL),
-('Casa Tipo C - Premium', 'Vivienda de dos pisos con terraza, 4 habitaciones, 3 banos, estudio, sala-comedor, cocina integral, garaje doble, zona BBQ. Area: 160m2.', NULL);
+('Casa Tipo A - Clasica', 'Vivienda con 3 habitaciones, 2 banos, sala-comedor, cocina integral y patio trasero. Area: 85m2.', NULL),
+('Casa Tipo B - Moderna', 'Vivienda con 4 habitaciones, 3 banos, estudio, sala-comedor amplia, cocina integral y garaje. Area: 120m2.', NULL),
+('Casa Tipo C - Premium', 'Vivienda con terraza, 4 habitaciones, 3 banos, estudio, sala-comedor, cocina integral, garaje doble y zona BBQ. Area: 160m2.', NULL);

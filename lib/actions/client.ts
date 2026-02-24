@@ -11,6 +11,7 @@ const pagoSchema = z.object({
   compra_id: z.coerce.number().positive(),
   monto: z.coerce.number().positive('El monto debe ser mayor a 0'),
   metodo_pago: z.string().min(1, 'Selecciona un metodo de pago'),
+  tipo: z.enum(['cuota_inicial', 'cuota_normal', 'adicional']).optional(),
   referencia: z.string().optional(),
 })
 
@@ -73,6 +74,7 @@ export async function registrarPagoAction(_prevState: unknown, formData: FormDat
     compra_id: formData.get('compra_id'),
     monto: formData.get('monto'),
     metodo_pago: formData.get('metodo_pago'),
+    tipo: formData.get('tipo') || 'cuota_normal',
     referencia: formData.get('referencia'),
   }
 
@@ -91,24 +93,35 @@ export async function registrarPagoAction(_prevState: unknown, formData: FormDat
     return { error: 'Compra no encontrada' }
   }
 
+  const compra = compras[0]
+
+  // Determine final amount depending on tipo
+  const tipo = parsed.data.tipo || 'cuota_normal'
+  let montoFinal = Number(parsed.data.monto)
+  if (tipo === 'cuota_inicial') {
+    montoFinal = Number(compra.cuota_inicial)
+  } else if (tipo === 'cuota_normal') {
+    montoFinal = Number(compra.valor_cuota)
+  }
+
   await sql`
-    INSERT INTO pagos (compra_id, monto, metodo_pago, referencia, estado)
-    VALUES (${parsed.data.compra_id}, ${parsed.data.monto}, ${parsed.data.metodo_pago}, ${parsed.data.referencia || null}, 'pendiente')
+    INSERT INTO pagos (compra_id, monto, metodo_pago, referencia, estado, tipo)
+    VALUES (${parsed.data.compra_id}, ${montoFinal}, ${parsed.data.metodo_pago}, ${parsed.data.referencia || null}, 'pendiente', ${tipo})
   `
 
   // Send payment confirmation email
-  const compra = compras[0]
   const lotes = await sql`SELECT codigo FROM lotes WHERE id = ${compra.lote_id}`
   const loteCodigo = lotes.length > 0 ? lotes[0].codigo : 'N/A'
 
   try {
     await sendPaymentConfirmationEmail(session.email, {
       nombre: session.nombre,
-      monto: formatCurrency(parsed.data.monto),
+      monto: formatCurrency(montoFinal),
       referencia: parsed.data.referencia || null,
       lote: loteCodigo,
       fecha: formatDate(new Date().toISOString()),
       metodoPago: parsed.data.metodo_pago,
+      tipo: tipo,
     })
   } catch {
     // Email sending failure should not block payment registration

@@ -23,7 +23,8 @@ export default async function PagosPage() {
       ORDER BY p.created_at DESC
     `,
     sql`
-      SELECT c.id, l.codigo as lote_codigo, c.saldo_pendiente
+      SELECT c.id, l.codigo as lote_codigo, c.saldo_pendiente, c.cuota_inicial, c.valor_cuota,
+        EXISTS(SELECT 1 FROM pagos p WHERE p.compra_id = c.id AND p.tipo = 'cuota_inicial' AND p.estado = 'aprobado') as cuota_inicial_pagada
       FROM compras c
       JOIN lotes l ON c.lote_id = l.id
       WHERE c.cliente_id = ${session.userId} AND c.estado = 'activa'

@@ -9,7 +9,9 @@ export default async function AdminComprasPage() {
   const sql = getDb()
   const [compras, clientes, lotes] = await Promise.all([
     sql`
-      SELECT c.*, u.nombre, u.apellido, l.codigo as lote_codigo
+      SELECT c.*, u.nombre, u.apellido, l.codigo as lote_codigo,
+        (SELECT COALESCE(COUNT(*), 0) FROM pagos WHERE compra_id = c.id AND estado = 'aprobado' AND tipo = 'cuota_normal') as cuotas_pagadas,
+        (SELECT COALESCE(COUNT(*), 0) FROM pagos WHERE compra_id = c.id AND estado = 'aprobado' AND tipo = 'cuota_inicial') as cuota_inicial_pagada
       FROM compras c
       JOIN usuarios u ON c.cliente_id = u.id
       JOIN lotes l ON c.lote_id = l.id
@@ -39,8 +41,10 @@ export default async function AdminComprasPage() {
                 <TableHead>Valor Total</TableHead>
                 <TableHead>Cuota Inicial</TableHead>
                 <TableHead>Cuotas</TableHead>
+                <TableHead>Cuotas restantes</TableHead>
                 <TableHead>Saldo</TableHead>
                 <TableHead>Estado</TableHead>
+                <TableHead>Historial</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -51,9 +55,13 @@ export default async function AdminComprasPage() {
                   <TableCell>{formatCurrency(Number(c.valor_total))}</TableCell>
                   <TableCell>{formatCurrency(Number(c.cuota_inicial))}</TableCell>
                   <TableCell>{c.num_cuotas} x {formatCurrency(Number(c.valor_cuota))}</TableCell>
+                  <TableCell>{Math.max(Number(c.num_cuotas) - Number(c.cuotas_pagadas), 0)}</TableCell>
                   <TableCell>{formatCurrency(Number(c.saldo_pendiente))}</TableCell>
                   <TableCell>
                     <Badge className={getEstadoColor(c.estado)}>{getEstadoLabel(c.estado)}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <a href={`/admin/compras/${c.id}/pagos`} className="text-sm text-primary hover:underline">Ver pagos</a>
                   </TableCell>
                 </TableRow>
               ))}

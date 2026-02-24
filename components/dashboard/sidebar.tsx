@@ -19,6 +19,7 @@ interface SidebarProps {
 const clientLinks = [
   { href: '/dashboard', label: 'Inicio', icon: Home },
   { href: '/dashboard/lotes', label: 'Lotes', icon: MapPin },
+  { href: '/dashboard/etapas', label: 'Etapas', icon: Building2 },
   { href: '/dashboard/compras', label: 'Mis Compras', icon: CreditCard },
   { href: '/dashboard/pagos', label: 'Mis Pagos', icon: FileText },
   { href: '/dashboard/pqrs', label: 'PQRS', icon: MessageSquare },

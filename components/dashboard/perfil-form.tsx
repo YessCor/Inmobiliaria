@@ -15,6 +15,7 @@ interface PerfilFormProps {
     email: string
     telefono: string | null
     created_at: string
+    verificado: boolean
   }
 }
 
@@ -57,6 +58,17 @@ export function PerfilForm({ user }: PerfilFormProps) {
             <Label htmlFor="email">Correo electronico</Label>
             <Input id="email" value={user.email} disabled className="bg-muted" />
             <p className="text-xs text-muted-foreground">El correo no se puede modificar.</p>
+            <div className="mt-2 text-sm">
+              {user.verificado ? (
+                <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-2 py-1 text-green-700">
+                  <CheckCircle2 className="h-4 w-4" /> Correo verificado
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-2 rounded-full bg-yellow-50 px-2 py-1 text-yellow-700">
+                  <AlertCircle className="h-4 w-4" /> Correo no verificado
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-col gap-2">

@@ -1,5 +1,6 @@
 'use client'
 
+import * as React from 'react'
 import { useActionState } from 'react'
 import { registrarPagoAction } from '@/lib/actions/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,11 +16,36 @@ interface PagoFormProps {
     id: number
     lote_codigo: string
     saldo_pendiente: number
+    cuota_inicial?: number
+    valor_cuota?: number
+    cuota_inicial_pagada?: boolean
   }>
 }
 
 export function PagoForm({ compras }: PagoFormProps) {
   const [state, action, pending] = useActionState(registrarPagoAction, null)
+
+  const [selectedCompra, setSelectedCompra] = React.useState<number | null>(
+    compras.length > 0 ? compras[0].id : null,
+  )
+  const [selectedTipo, setSelectedTipo] = React.useState<string>('cuota_normal')
+
+  React.useEffect(() => {
+    // When tipo or compra changes, set monto accordingly
+    const compra = compras.find((c) => c.id === Number(selectedCompra))
+    const montoInput = document.querySelector<HTMLInputElement>('#monto')
+    if (!montoInput) return
+    if (selectedTipo === 'cuota_inicial') {
+      montoInput.value = compra?.cuota_inicial ? String(compra.cuota_inicial) : '0'
+      montoInput.readOnly = true
+    } else if (selectedTipo === 'cuota_normal') {
+      montoInput.value = compra?.valor_cuota ? String(compra.valor_cuota) : '0'
+      montoInput.readOnly = true
+    } else {
+      montoInput.value = ''
+      montoInput.readOnly = false
+    }
+  }, [selectedCompra, selectedTipo, compras])
 
   if (compras.length === 0) {
     return (
@@ -57,7 +83,11 @@ export function PagoForm({ compras }: PagoFormProps) {
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="compra_id">Compra</Label>
-            <Select name="compra_id" required>
+            <Select
+              name="compra_id"
+              required
+              onValueChange={(v) => setSelectedCompra(Number(v))}
+            >
               <SelectTrigger id="compra_id">
                 <SelectValue placeholder="Selecciona la compra" />
               </SelectTrigger>
@@ -87,6 +117,34 @@ export function PagoForm({ compras }: PagoFormProps) {
                 <SelectItem value="efectivo">Efectivo</SelectItem>
                 <SelectItem value="cheque">Cheque</SelectItem>
                 <SelectItem value="tarjeta">Tarjeta</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="tipo">Tipo de Pago</Label>
+            <Select
+              name="tipo"
+              required
+              onValueChange={(v) => setSelectedTipo(String(v))}
+            >
+              <SelectTrigger id="tipo">
+                <SelectValue placeholder="Selecciona tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                {(() => {
+                  const compra = compras.find((c) => c.id === Number(selectedCompra))
+                  const inicialPagada = !!compra?.cuota_inicial_pagada
+                  return (
+                    <>
+                      <SelectItem value="cuota_inicial" disabled={inicialPagada}>
+                        Cuota inicial
+                      </SelectItem>
+                      <SelectItem value="cuota_normal">Cuota mensual</SelectItem>
+                      <SelectItem value="adicional">Pago adicional</SelectItem>
+                    </>
+                  )
+                })()}
               </SelectContent>
             </Select>
           </div>

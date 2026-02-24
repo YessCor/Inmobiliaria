@@ -5,6 +5,8 @@ import { getDb } from '@/lib/db'
 import { createSession, deleteSession, getSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
+import crypto from 'crypto'
+import { sendVerificationEmail } from '@/lib/email'
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -86,23 +88,31 @@ export async function registerAction(_prevState: unknown, formData: FormData) {
   }
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 12)
+  // crear token de verificacion
+  const token = crypto.randomBytes(32).toString('hex')
+  const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 horas
 
   const result = await sql`
-    INSERT INTO usuarios (nombre, apellido, email, telefono, password_hash, rol, verificado)
-    VALUES (${parsed.data.nombre}, ${parsed.data.apellido}, ${parsed.data.email}, ${parsed.data.telefono || null}, ${passwordHash}, 'cliente', true)
+    INSERT INTO usuarios (nombre, apellido, email, telefono, password_hash, rol, verificado, token_verificacion, token_verificacion_expira)
+    VALUES (${parsed.data.nombre}, ${parsed.data.apellido}, ${parsed.data.email}, ${parsed.data.telefono || null}, ${passwordHash}, 'cliente', FALSE, ${token}, ${expiry.toISOString()})
     RETURNING id, nombre, apellido, email, rol
   `
 
   const user = result[0]
-  await createSession({
-    userId: user.id,
-    email: user.email,
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : 'http://localhost:3000'
+  const verifyUrl = `${baseUrl}/verificar?token=${token}`
+
+  // enviar correo de verificacion
+  await sendVerificationEmail(user.email, {
     nombre: user.nombre,
-    apellido: user.apellido,
-    rol: user.rol,
+    verifyUrl,
   })
 
-  redirect('/dashboard')
+  // No iniciar sesión automaticamente; pedir verificación por email
+  redirect('/login?verificacion=pendiente')
 }
 
 export async function logoutAction() {

@@ -23,12 +23,14 @@ interface EditarLoteDialogProps {
     cuartos: number
     banos: number
     parqueaderos: number
+    plano_id?: number | null
     imagen_url: string | null
   }
   etapas: Array<{ id: number; nombre: string }>
+  planos?: Array<{ id: number; nombre: string; num_cuartos?: number; banos?: number; parqueaderos?: number }>
 }
 
-export function EditarLoteDialog({ lote, etapas }: EditarLoteDialogProps) {
+export function EditarLoteDialog({ lote, etapas, planos }: EditarLoteDialogProps) {
   const [open, setOpen] = useState(false)
   const [state, action, pending] = useActionState(actualizarLoteAction, null)
 
@@ -73,20 +75,20 @@ export function EditarLoteDialog({ lote, etapas }: EditarLoteDialogProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor={`cuartos-${lote.id}`}>Cuartos</Label>
-              <Input id={`cuartos-${lote.id}`} name="cuartos" type="number" min="0" defaultValue={lote.cuartos || 0} required />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor={`banos-${lote.id}`}>Baños</Label>
-              <Input id={`banos-${lote.id}`} name="banos" type="number" min="0" defaultValue={lote.banos || 0} required />
-            </div>
-          </div>
-
           <div className="flex flex-col gap-2">
-            <Label htmlFor={`parqueaderos-${lote.id}`}>Parqueaderos</Label>
-            <Input id={`parqueaderos-${lote.id}`} name="parqueaderos" type="number" min="0" defaultValue={lote.parqueaderos || 0} required />
+            <Label htmlFor={`plano_id-${lote.id}`}>Plano (tipo de casa)</Label>
+            <Select name="plano_id" defaultValue={lote.plano_id ? String(lote.plano_id) : 'none'}>
+              <SelectTrigger id={`plano_id-${lote.id}`}>
+                <SelectValue placeholder="Sin plano" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sin plano</SelectItem>
+                { (planos || []).map((p) => (
+                  <SelectItem key={p.id} value={String(p.id)}>{p.nombre} — {p.num_cuartos}c / {p.banos}b</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">Si eliges un plano, los atributos del lote se actualizarán para coincidir con el plano.</p>
           </div>
 
           <div className="flex flex-col gap-2">

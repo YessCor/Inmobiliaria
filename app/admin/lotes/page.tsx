@@ -10,9 +10,10 @@ import { LoteEstadoSelect } from '@/components/admin/lote-estado-select'
 
 export default async function AdminLotesPage() {
   const sql = getDb()
-  const [lotes, etapas] = await Promise.all([
+  const [lotes, etapas, planos] = await Promise.all([
     sql`SELECT l.*, e.nombre as etapa_nombre FROM lotes l LEFT JOIN etapas e ON l.etapa_id = e.id ORDER BY l.codigo ASC`,
     sql`SELECT id, nombre FROM etapas ORDER BY orden ASC`,
+    sql`SELECT id, nombre, num_cuartos, banos, parqueaderos FROM planos ORDER BY created_at DESC`,
   ])
 
   return (
@@ -22,7 +23,7 @@ export default async function AdminLotesPage() {
           <h1 className="text-2xl font-bold text-foreground">Lotes</h1>
           <p className="text-muted-foreground">Gestiona los lotes del proyecto.</p>
         </div>
-        <CrearLoteDialog etapas={etapas as any} />
+        <CrearLoteDialog etapas={etapas as any} planos={planos as any} />
       </div>
 
       <Card>
@@ -55,7 +56,7 @@ export default async function AdminLotesPage() {
                     <LoteEstadoSelect loteId={lote.id} currentEstado={lote.estado} />
                   </TableCell>
                   <TableCell className="flex gap-2">
-                    <EditarLoteDialog lote={lote as any} etapas={etapas as any} />
+                    <EditarLoteDialog lote={lote as any} etapas={etapas as any} planos={planos as any} />
                     <EliminarLoteButton loteId={lote.id} loteCodigo={lote.codigo} />
                   </TableCell>
                 </TableRow>

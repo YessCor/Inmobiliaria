@@ -12,9 +12,10 @@ import { AlertCircle, CheckCircle2, Loader2, Plus } from 'lucide-react'
 
 interface Props {
   etapas: Array<{ id: number; nombre: string }>
+  planos?: Array<{ id: number; nombre: string; num_cuartos?: number; banos?: number; parqueaderos?: number }>
 }
 
-export function CrearLoteDialog({ etapas }: Props) {
+export function CrearLoteDialog({ etapas, planos }: Props) {
   const [open, setOpen] = useState(false)
   const [state, action, pending] = useActionState(crearLoteAction, null)
 
@@ -50,20 +51,18 @@ export function CrearLoteDialog({ etapas }: Props) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="cuartos">Cuartos</Label>
-              <Input id="cuartos" name="cuartos" type="number" min="0" defaultValue="0" required />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="banos">Baños</Label>
-              <Input id="banos" name="banos" type="number" min="0" defaultValue="0" required />
-            </div>
-          </div>
-
           <div className="flex flex-col gap-2">
-            <Label htmlFor="parqueaderos">Parqueaderos</Label>
-            <Input id="parqueaderos" name="parqueaderos" type="number" min="0" defaultValue="0" required />
+            <Label htmlFor="plano_id">Plano (tipo de casa)</Label>
+            <Select name="plano_id" defaultValue="none">
+              <SelectTrigger id="plano_id"><SelectValue placeholder="Sin plano (ingresar atributos manualmente)" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sin plano</SelectItem>
+                { (planos || []).map((p) => (
+                  <SelectItem key={p.id} value={String(p.id)}>{p.nombre} — {p.num_cuartos}c / {p.banos}b</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">Si eliges un plano, los atributos de cuartos/baños/parqueaderos se copiarán automáticamente.</p>
           </div>
 
           <div className="flex flex-col gap-2">

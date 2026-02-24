@@ -2,6 +2,9 @@ import { getDb } from '@/lib/db'
 import { formatDate } from '@/lib/format'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { FileImage } from 'lucide-react'
+import { CrearPlanoDialog } from '@/components/admin/crear-plano-dialog'
+import { EditarPlanoDialog } from '@/components/admin/editar-plano-dialog'
+import { EliminarPlanoButton } from '@/components/admin/eliminar-plano-button'
 
 export default async function AdminPlanosPage() {
   const sql = getDb()
@@ -9,9 +12,12 @@ export default async function AdminPlanosPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">Planos</h1>
-        <p className="text-muted-foreground">Consulta los planos de vivienda disponibles.</p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Planos</h1>
+          <p className="text-muted-foreground">Consulta los planos de vivienda disponibles.</p>
+        </div>
+        <CrearPlanoDialog />
       </div>
 
       {planos.length === 0 ? (
@@ -41,6 +47,10 @@ export default async function AdminPlanosPage() {
                   <p className="text-sm text-muted-foreground leading-relaxed">{plano.descripcion}</p>
                 )}
                 <p className="mt-2 text-xs text-muted-foreground">Creado: {formatDate(plano.created_at)}</p>
+                <div className="mt-3 flex items-center gap-2">
+                  <EditarPlanoDialog plano={plano as any} />
+                  <EliminarPlanoButton planoId={plano.id} planoNombre={plano.nombre} />
+                </div>
               </CardContent>
             </Card>
           ))}
