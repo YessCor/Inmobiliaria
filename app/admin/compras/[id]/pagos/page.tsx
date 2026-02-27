@@ -6,11 +6,22 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { PagoActions } from '@/components/admin/pago-actions'
 
 interface Params {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default async function CompraPagosPage({ params }: Params) {
-  const compraId = Number(params.id)
+  const { id } = await params
+  const compraId = Number(id)
+  if (Number.isNaN(compraId)) {
+    return (
+      <div>
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-foreground">ID de compra inválido</h1>
+          <p className="text-muted-foreground">El identificador proporcionado no es válido.</p>
+        </div>
+      </div>
+    )
+  }
   const sql = getDb()
 
   const pagos = await sql`

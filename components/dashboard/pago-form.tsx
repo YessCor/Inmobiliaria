@@ -34,16 +34,26 @@ export function PagoForm({ compras }: PagoFormProps) {
     // When tipo or compra changes, set monto accordingly
     const compra = compras.find((c) => c.id === Number(selectedCompra))
     const montoInput = document.querySelector<HTMLInputElement>('#monto')
-    if (!montoInput) return
+    if (!montoInput || !compra) return
+    
+    const saldoPendiente = Number(compra.saldo_pendiente) || 0
+    const valorCuota = Number(compra.valor_cuota) || 0
+    const cuotaInicial = Number(compra.cuota_inicial) || 0
+    
     if (selectedTipo === 'cuota_inicial') {
-      montoInput.value = compra?.cuota_inicial ? String(compra.cuota_inicial) : '0'
+      // Para cuota inicial: mostrar el mínimo entre cuota inicial y saldo pendiente
+      montoInput.value = String(Math.min(cuotaInicial, saldoPendiente))
       montoInput.readOnly = true
     } else if (selectedTipo === 'cuota_normal') {
-      montoInput.value = compra?.valor_cuota ? String(compra.valor_cuota) : '0'
+      // Para cuota normal: mostrar el mínimo entre valor cuota y saldo pendiente
+      montoInput.value = String(Math.min(valorCuota, saldoPendiente))
       montoInput.readOnly = true
     } else {
+      // Para pago adicional: mostrar el saldo pendiente como máximo
       montoInput.value = ''
       montoInput.readOnly = false
+      // Establecer el máximo en el saldo pendiente
+      montoInput.max = String(saldoPendiente)
     }
   }, [selectedCompra, selectedTipo, compras])
 

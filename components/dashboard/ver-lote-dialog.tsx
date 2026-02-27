@@ -15,6 +15,11 @@ interface VerLoteDialogProps {
 export function VerLoteDialog({ lote }: VerLoteDialogProps) {
   const [open, setOpen] = useState(false)
   const isAvailable = lote.estado === 'disponible'
+  const area = Number(lote.plano_area_m2 ?? lote.area_m2 ?? 0)
+  const precio = Number(lote.plano_valor ?? lote.valor ?? 0)
+  const cuartos = lote.plano_cuartos ?? lote.cuartos ?? 0
+  const banos = lote.plano_banos ?? lote.banos ?? 0
+  const parqueaderos = lote.plano_parqueaderos ?? lote.parqueaderos ?? 0
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -54,34 +59,34 @@ export function VerLoteDialog({ lote }: VerLoteDialogProps) {
               <p className="text-sm text-muted-foreground">Area</p>
               <div className="flex items-center gap-2 mt-1">
                 <Maximize2 className="h-4 w-4 text-primary" />
-                <p className="font-semibold">{Number(lote.area_m2)} m²</p>
+                <p className="font-semibold">{area > 0 ? `${area} m²` : '—'}</p>
               </div>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Valor</p>
               <p className="font-semibold text-lg text-primary">
-                {formatCurrency(Number(lote.valor))}
+                {precio > 0 ? formatCurrency(precio) : 'Consultar'}
               </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Cuartos</p>
               <div className="flex items-center gap-2 mt-1">
                 <Sofa className="h-4 w-4 text-primary" />
-                <p className="font-semibold">{lote.cuartos}</p>
+                <p className="font-semibold">{cuartos}</p>
               </div>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Baños</p>
               <div className="flex items-center gap-2 mt-1">
                 <Waves className="h-4 w-4 text-primary" />
-                <p className="font-semibold">{lote.banos}</p>
+                <p className="font-semibold">{banos}</p>
               </div>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Parqueaderos</p>
               <div className="flex items-center gap-2 mt-1">
                 <ParkingCircle className="h-4 w-4 text-primary" />
-                <p className="font-semibold">{lote.parqueaderos}</p>
+                <p className="font-semibold">{parqueaderos}</p>
               </div>
             </div>
           </div>

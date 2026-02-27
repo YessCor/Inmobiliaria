@@ -11,6 +11,10 @@ export default async function PagosPage() {
   const session = await getSession()
   if (!session) redirect('/login')
 
+  // Ensure we have a valid numeric userId to interpolate in SQL
+  const userId = Number(session.userId)
+  if (Number.isNaN(userId)) redirect('/login')
+
   const sql = getDb()
 
   const [pagos, compras] = await Promise.all([
@@ -19,7 +23,7 @@ export default async function PagosPage() {
       FROM pagos p
       JOIN compras c ON p.compra_id = c.id
       JOIN lotes l ON c.lote_id = l.id
-      WHERE c.cliente_id = ${session.userId}
+      WHERE c.cliente_id = ${userId}
       ORDER BY p.created_at DESC
     `,
     sql`
@@ -27,7 +31,7 @@ export default async function PagosPage() {
         EXISTS(SELECT 1 FROM pagos p WHERE p.compra_id = c.id AND p.tipo = 'cuota_inicial' AND p.estado = 'aprobado') as cuota_inicial_pagada
       FROM compras c
       JOIN lotes l ON c.lote_id = l.id
-      WHERE c.cliente_id = ${session.userId} AND c.estado = 'activa'
+      WHERE c.cliente_id = ${userId} AND c.estado = 'activa'
       ORDER BY c.fecha_compra DESC
     `,
   ])

@@ -10,6 +10,7 @@ export default async function AdminComprasPage() {
   const [compras, clientes, lotes] = await Promise.all([
     sql`
       SELECT c.*, u.nombre, u.apellido, l.codigo as lote_codigo,
+        (SELECT COALESCE(SUM(monto), 0) FROM pagos WHERE compra_id = c.id AND estado = 'aprobado') as total_pagado,
         (SELECT COALESCE(COUNT(*), 0) FROM pagos WHERE compra_id = c.id AND estado = 'aprobado' AND tipo = 'cuota_normal') as cuotas_pagadas,
         (SELECT COALESCE(COUNT(*), 0) FROM pagos WHERE compra_id = c.id AND estado = 'aprobado' AND tipo = 'cuota_inicial') as cuota_inicial_pagada
       FROM compras c
@@ -18,7 +19,7 @@ export default async function AdminComprasPage() {
       ORDER BY c.created_at DESC
     `,
     sql`SELECT id, nombre, apellido, email FROM usuarios WHERE rol = 'cliente' ORDER BY nombre ASC`,
-    sql`SELECT id, codigo, valor FROM lotes WHERE estado = 'disponible' ORDER BY codigo ASC`,
+    sql`SELECT l.id, l.codigo, p.valor as valor FROM lotes l LEFT JOIN planos p ON l.plano_id = p.id WHERE l.estado = 'disponible' ORDER BY l.codigo ASC`,
   ])
 
   return (
@@ -55,13 +56,31 @@ export default async function AdminComprasPage() {
                   <TableCell>{formatCurrency(Number(c.valor_total))}</TableCell>
                   <TableCell>{formatCurrency(Number(c.cuota_inicial))}</TableCell>
                   <TableCell>{c.num_cuotas} x {formatCurrency(Number(c.valor_cuota))}</TableCell>
-                  <TableCell>{Math.max(Number(c.num_cuotas) - Number(c.cuotas_pagadas), 0)}</TableCell>
+                  <TableCell>{(() => {
+                    const valorCuota = Number(c.valor_cuota) || 0
+                    const saldo = Number(c.saldo_pendiente) || 0
+                    const inicialPagada = Number(c.cuota_inicial_pagada) > 0
+                    
+                    // Si no se ha pagado la cuota inicial, mostrar que falta la inicial + las cuotas
+                    if (!inicialPagada) {
+                      if (valorCuota <= 0) return '1 inicial + ' + c.num_cuotas
+                      return '1 inicial + ' + c.num_cuotas + ' cuotas'
+                    }
+                    
+                    // Si ya se pagó la inicial, calcular cuotas mensuales restantes
+                    if (valorCuota <= 0) return 0
+                    return Math.max(Math.ceil(saldo / valorCuota), 0)
+                  })()}</TableCell>
                   <TableCell>{formatCurrency(Number(c.saldo_pendiente))}</TableCell>
                   <TableCell>
                     <Badge className={getEstadoColor(c.estado)}>{getEstadoLabel(c.estado)}</Badge>
                   </TableCell>
                   <TableCell>
-                    <a href={`/admin/compras/${c.id}/pagos`} className="text-sm text-primary hover:underline">Ver pagos</a>
+                    {c.id ? (
+                      <a href={`/admin/compras/${String(c.id)}/pagos`} className="text-sm text-primary hover:underline">Ver pagos</a>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">-</span>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

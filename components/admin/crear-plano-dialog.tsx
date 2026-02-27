@@ -42,8 +42,8 @@ export function CrearPlanoDialog() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="num_cuartos">Cuartos</Label>
-              <Input id="num_cuartos" name="num_cuartos" type="number" min="0" defaultValue="0" />
+              <Label htmlFor="cuartos">Cuartos</Label>
+              <Input id="cuartos" name="cuartos" type="number" min="0" defaultValue={0} />
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="banos">Baños</Label>

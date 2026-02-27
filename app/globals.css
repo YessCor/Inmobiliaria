@@ -4,74 +4,128 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.985 0.002 75);
-  --foreground: oklch(0.22 0.02 50);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.02 50);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.02 50);
-  --primary: oklch(0.52 0.12 45);
-  --primary-foreground: oklch(0.98 0.005 75);
-  --secondary: oklch(0.95 0.01 75);
-  --secondary-foreground: oklch(0.3 0.03 50);
-  --muted: oklch(0.95 0.008 75);
-  --muted-foreground: oklch(0.5 0.02 50);
-  --accent: oklch(0.62 0.15 145);
-  --accent-foreground: oklch(0.98 0.005 145);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.9 0.01 75);
-  --input: oklch(0.9 0.01 75);
-  --ring: oklch(0.52 0.12 45);
-  --chart-1: oklch(0.52 0.12 45);
-  --chart-2: oklch(0.62 0.15 145);
-  --chart-3: oklch(0.65 0.12 230);
-  --chart-4: oklch(0.75 0.14 75);
-  --chart-5: oklch(0.55 0.18 30);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.25 0.03 45);
-  --sidebar-foreground: oklch(0.95 0.005 75);
-  --sidebar-primary: oklch(0.65 0.14 45);
-  --sidebar-primary-foreground: oklch(0.98 0.005 75);
-  --sidebar-accent: oklch(0.32 0.04 45);
-  --sidebar-accent-foreground: oklch(0.95 0.005 75);
-  --sidebar-border: oklch(0.35 0.04 45);
-  --sidebar-ring: oklch(0.52 0.12 45);
+  /* Light theme: blanco y verde */
+  --background: #ffffff;
+  --foreground: #043927; /* dark green text */
+  --card: #ffffff;
+  --card-foreground: #043927;
+  --popover: #ffffff;
+  --popover-foreground: #043927;
+  --primary: #0b9b44; /* primary green */
+  --primary-foreground: #ffffff;
+  --secondary: #eef7ef;
+    --primary: #0ea75c; /* refined primary green */
+  --muted: #f6faf6;
+  --muted-foreground: #4a6b57;
+  --accent: #0b9b44;
+  --accent-foreground: #ffffff;
+  --destructive: #e34a4a;
+  --destructive-foreground: #ffffff;
+  --border: #e6f3ea;
+  --input: #f8fbf8;
+  --ring: #0b9b44;
+  --chart-1: #0b9b44;
+  --chart-2: #24b46a;
+    --ring: #0ea75c;
+    --elev-shadow: 0 12px 30px rgba(14,167,92,0.10);
+  --chart-4: #cfeee0;
+  --chart-5: #a6ddbb;
+  --radius: 0.75rem;
+  --sidebar: #f6faf6;
+  --sidebar-foreground: #043927;
+  --sidebar-primary: #0b9b44;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e6f3ea;
+  --sidebar-accent-foreground: #043927;
+  --sidebar-border: #e6f3ea;
+  --sidebar-ring: #0b9b44;
 }
 
 .dark {
-  --background: oklch(0.16 0.015 50);
-  --foreground: oklch(0.95 0.005 75);
-  --card: oklch(0.2 0.015 50);
-  --card-foreground: oklch(0.95 0.005 75);
-  --popover: oklch(0.2 0.015 50);
-  --popover-foreground: oklch(0.95 0.005 75);
-  --primary: oklch(0.65 0.14 45);
-  --primary-foreground: oklch(0.15 0.02 50);
-  --secondary: oklch(0.28 0.02 50);
-  --secondary-foreground: oklch(0.95 0.005 75);
-  --muted: oklch(0.28 0.02 50);
-  --muted-foreground: oklch(0.65 0.015 50);
-  --accent: oklch(0.55 0.13 145);
-  --accent-foreground: oklch(0.95 0.005 145);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.3 0.02 50);
-  --input: oklch(0.3 0.02 50);
-  --ring: oklch(0.65 0.14 45);
-  --chart-1: oklch(0.65 0.14 45);
-  --chart-2: oklch(0.55 0.13 145);
-  --chart-3: oklch(0.55 0.12 230);
-  --chart-4: oklch(0.7 0.14 75);
-  --chart-5: oklch(0.5 0.18 30);
-  --sidebar: oklch(0.2 0.02 50);
-  --sidebar-foreground: oklch(0.95 0.005 75);
-  --sidebar-primary: oklch(0.65 0.14 45);
-  --sidebar-primary-foreground: oklch(0.95 0.005 75);
-  --sidebar-accent: oklch(0.28 0.025 50);
-  --sidebar-accent-foreground: oklch(0.95 0.005 75);
-  --sidebar-border: oklch(0.3 0.02 50);
-  --sidebar-ring: oklch(0.65 0.14 45);
+  /* Dark theme: negro y verde neón */
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #0a0a0a;
+  --card-foreground: #ffffff;
+  --popover: #0a0a0a;
+  --popover-foreground: #ffffff;
+  --primary: #39ff14; /* neon green */
+  --primary-foreground: #000000;
+  --secondary: #0b2620;
+    --primary: #39ff14; /* neon green */
+  --muted: #07120f;
+  --muted-foreground: #9ef6b9;
+  --accent: #39ff14;
+  --accent-foreground: #000000;
+  --destructive: #ff6b6b;
+  --destructive-foreground: #000000;
+  --border: #092017;
+  --input: #07120f;
+  --ring: #39ff14;
+  --chart-1: #39ff14;
+  --chart-2: #27e06a;
+    --ring: #39ff14;
+    --elev-shadow: 0 18px 36px rgba(57,255,20,0.12);
+  --chart-4: #0b8c4a;
+  --chart-5: #05603a;
+  --sidebar: #070707;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #39ff14;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #06110e;
+  --sidebar-accent-foreground: #bfffcf;
+  --sidebar-border: #092017;
+  --sidebar-ring: #39ff14;
+}
+
+/* Smooth transitions for theme change */
+:root, .dark {
+  transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease;
+}
+
+/* Card hover and entrance animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+[data-slot="card"] {
+  transition: transform 220ms var(--ease, ease), box-shadow 220ms var(--ease, ease), background-color 220ms ease;
+  will-change: transform, box-shadow;
+  animation: fadeInUp 260ms ease both;
+}
+
+[data-slot="card"]:hover {
+  transform: translateY(-6px) scale(1.003);
+  box-shadow: var(--elev-shadow);
+}
+
+/* Button subtle hover glow */
+[data-slot="button"] {
+  transition: box-shadow 180ms ease, transform 160ms ease, background-color 160ms ease;
+}
+
+[data-slot="button"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(14,167,92,0.10);
+}
+
+/* Progress indicator animation */
+[data-slot="progress-indicator"] {
+  transition: transform 600ms cubic-bezier(.2,.8,.2,1);
+  background-image: linear-gradient(45deg, rgba(255,255,255,0.06) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.06) 75%, transparent 75%, transparent);
+  background-size: 16px 16px;
+  animation: progressStripe 1.6s linear infinite;
+}
+
+@keyframes progressStripe {
+  from { background-position: 0 0; }
+  to { background-position: 32px 0; }
+}
+
+/* Neon glow for dark primary buttons */
+.dark [data-slot="button"][class*="bg-primary"]:hover {
+  box-shadow: 0 0 18px rgba(57,255,20,0.25), 0 8px 30px rgba(0,0,0,0.6);
 }
 
 @theme inline {
@@ -121,5 +175,25 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Mejorar visibilidad del texto en formularios */
+  input, textarea, select {
+    @apply text-foreground;
+  }
+  
+  /* Labels más visibles */
+  label {
+    @apply text-foreground;
+  }
+  
+  /* Select content texto visible en ambos temas */
+  [data-slot="select-content"] {
+    @apply text-foreground;
+  }
+  
+  /* Placeholder más visible */
+  ::placeholder {
+    @apply text-muted-foreground opacity-80;
   }
 }

@@ -11,6 +11,9 @@ export default async function ComprasPage() {
   if (!session) redirect('/login')
 
   const sql = getDb()
+  const userId = Number(session.userId)
+  if (Number.isNaN(userId)) redirect('/login')
+
   const compras = await sql`
     SELECT c.*, l.codigo as lote_codigo, l.ubicacion as lote_ubicacion,
       (SELECT COALESCE(SUM(monto), 0) FROM pagos WHERE compra_id = c.id AND estado = 'aprobado') as total_pagado,
@@ -18,7 +21,7 @@ export default async function ComprasPage() {
       (SELECT COALESCE(COUNT(*), 0) FROM pagos WHERE compra_id = c.id AND estado = 'aprobado' AND tipo = 'cuota_inicial') as cuota_inicial_pagada
     FROM compras c
     JOIN lotes l ON c.lote_id = l.id
-    WHERE c.cliente_id = ${session.userId}
+    WHERE c.cliente_id = ${userId}
     ORDER BY c.fecha_compra DESC
   `
 
@@ -40,7 +43,10 @@ export default async function ComprasPage() {
           {compras.map((compra) => {
             const totalPagado = Number(compra.total_pagado)
             const valorTotal = Number(compra.valor_total)
+            // Calcular progreso basado en total pagado vs valor total
             const porcentaje = valorTotal > 0 ? Math.round((totalPagado / valorTotal) * 100) : 0
+            // No permitir más de 100%
+            const porcentajeClamped = Math.min(porcentaje, 100)
 
             return (
               <Card key={compra.id}>
@@ -80,14 +86,33 @@ export default async function ComprasPage() {
                         <div className="mt-6">
                           <div className="mb-2 flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">Progreso de pago</span>
-                            <span className="font-medium text-foreground">{porcentaje}%</span>
+                            <span className="font-medium text-foreground">{porcentajeClamped}%</span>
                           </div>
-                          <Progress value={porcentaje} className="h-2" />
+                          <Progress value={porcentajeClamped} className="h-2" />
                           <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                             <div>Pagado: {formatCurrency(totalPagado)}</div>
                             <div>Pendiente: {formatCurrency(Number(compra.saldo_pendiente))}</div>
                             <div>Cuota inicial: {compra.cuota_inicial_pagada ? 'Pagada' : 'Pendiente'}</div>
-                            <div>Cuotas restantes: {Math.max(Number(compra.num_cuotas) - Number(compra.cuotas_pagadas), 0)}</div>
+                            <div>Cuotas restantes: {(() => {
+                              const valorCuota = Number(compra.valor_cuota) || 0
+                              const saldo = Number(compra.saldo_pendiente) || 0
+                              const inicialPagada = Number(compra.cuota_inicial_pagada) > 0
+                              
+                              // Si la compra está completada (100% pagado), no hay cuotas restantes
+                              if (porcentajeClamped >= 100) {
+                                return 'Pagado completamente'
+                              }
+                              
+                              // Si no se ha pagado la cuota inicial, mostrar que falta la inicial + las cuotas
+                              if (!inicialPagada) {
+                                if (valorCuota <= 0) return '1 inicial + ' + compra.num_cuotas
+                                return '1 inicial + ' + compra.num_cuotas + ' cuotas'
+                              }
+                              
+                              // Si ya se pagó la inicial, calcular cuotas mensuales restantes
+                              if (valorCuota <= 0) return 0
+                              return Math.max(Math.ceil(saldo / valorCuota), 0)
+                            })()}</div>
                           </div>
                         </div>
                 </CardContent>

@@ -8,13 +8,14 @@ import { CreditCard, FileText, MapPin, MessageSquare } from 'lucide-react'
 export default async function DashboardPage() {
   const session = await getSession()
   if (!session) redirect('/login')
-
   const sql = getDb()
+  const userId = Number(session.userId)
+  if (Number.isNaN(userId)) redirect('/login')
 
   const [comprasResult, pagosResult, pqrsResult, lotesResult] = await Promise.all([
-    sql`SELECT COUNT(*) as total, COALESCE(SUM(saldo_pendiente), 0) as saldo FROM compras WHERE cliente_id = ${session.userId}`,
-    sql`SELECT COUNT(*) as total FROM pagos p JOIN compras c ON p.compra_id = c.id WHERE c.cliente_id = ${session.userId}`,
-    sql`SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE estado = 'pendiente') as pendientes FROM pqrs WHERE cliente_id = ${session.userId}`,
+    sql`SELECT COUNT(*) as total, COALESCE(SUM(saldo_pendiente), 0) as saldo FROM compras WHERE cliente_id = ${userId}`,
+    sql`SELECT COUNT(*) as total FROM pagos p JOIN compras c ON p.compra_id = c.id WHERE c.cliente_id = ${userId}`,
+    sql`SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE estado = 'pendiente') as pendientes FROM pqrs WHERE cliente_id = ${userId}`,
     sql`SELECT COUNT(*) as total FROM lotes WHERE estado = 'disponible'`,
   ])
 

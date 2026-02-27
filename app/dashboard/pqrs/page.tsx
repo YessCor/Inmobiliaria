@@ -5,14 +5,16 @@ import { formatDate, getEstadoLabel, getEstadoColor, getPqrsTypeLabel } from '@/
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { PqrsForm } from '@/components/dashboard/pqrs-form'
+import PqrsCard from '@/components/dashboard/pqrs-card'
 
 export default async function PqrsPage() {
   const session = await getSession()
   if (!session) redirect('/login')
-
   const sql = getDb()
+  const userId = Number(session.userId)
+  if (Number.isNaN(userId)) redirect('/login')
   const pqrs = await sql`
-    SELECT * FROM pqrs WHERE cliente_id = ${session.userId} ORDER BY created_at DESC
+    SELECT * FROM pqrs WHERE cliente_id = ${userId} ORDER BY created_at DESC
   `
 
   return (
@@ -37,29 +39,7 @@ export default async function PqrsPage() {
               </Card>
             ) : (
               pqrs.map((item) => (
-                <Card key={item.id}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">{getPqrsTypeLabel(item.tipo)}</Badge>
-                        <CardTitle className="text-base">{item.asunto}</CardTitle>
-                      </div>
-                      <Badge className={getEstadoColor(item.estado)}>
-                        {getEstadoLabel(item.estado)}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground">{formatDate(item.created_at)}</p>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{item.descripcion}</p>
-                    {item.respuesta && (
-                      <div className="mt-4 rounded-lg border border-border bg-muted/50 p-4">
-                        <p className="mb-1 text-xs font-medium text-foreground">Respuesta:</p>
-                        <p className="text-sm text-muted-foreground leading-relaxed">{item.respuesta}</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <PqrsCard key={item.id} item={item} />
               ))
             )}
           </div>

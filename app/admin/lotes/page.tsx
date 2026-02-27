@@ -11,9 +11,9 @@ import { LoteEstadoSelect } from '@/components/admin/lote-estado-select'
 export default async function AdminLotesPage() {
   const sql = getDb()
   const [lotes, etapas, planos] = await Promise.all([
-    sql`SELECT l.*, e.nombre as etapa_nombre FROM lotes l LEFT JOIN etapas e ON l.etapa_id = e.id ORDER BY l.codigo ASC`,
+    sql`SELECT l.*, e.nombre as etapa_nombre, p.id as plano_id, p.nombre as plano_nombre, p.area_m2 as plano_area_m2, p.valor as plano_valor, p.cuartos as plano_cuartos, p.banos as plano_banos, p.parqueaderos as plano_parqueaderos FROM lotes l LEFT JOIN etapas e ON l.etapa_id = e.id LEFT JOIN planos p ON l.plano_id = p.id ORDER BY l.codigo ASC`,
     sql`SELECT id, nombre FROM etapas ORDER BY orden ASC`,
-    sql`SELECT id, nombre, num_cuartos, banos, parqueaderos FROM planos ORDER BY created_at DESC`,
+    sql`SELECT id, nombre, cuartos, banos, parqueaderos, area_m2, valor FROM planos ORDER BY created_at DESC`,
   ])
 
   return (
@@ -46,11 +46,11 @@ export default async function AdminLotesPage() {
               {lotes.map((lote) => (
                 <TableRow key={lote.id}>
                   <TableCell className="font-medium">{lote.codigo}</TableCell>
-                  <TableCell>{Number(lote.area_m2)} m2</TableCell>
-                  <TableCell>{lote.cuartos || '-'}</TableCell>
-                  <TableCell>{lote.banos || '-'}</TableCell>
-                  <TableCell>{lote.parqueaderos || '-'}</TableCell>
-                  <TableCell>{formatCurrency(Number(lote.valor))}</TableCell>
+                  <TableCell>{Number(lote.plano_area_m2 ?? lote.area_m2 ?? 0)} m2</TableCell>
+                  <TableCell>{lote.plano_cuartos ?? lote.cuartos ?? '-'}</TableCell>
+                  <TableCell>{lote.plano_banos ?? lote.banos ?? '-'}</TableCell>
+                  <TableCell>{lote.plano_parqueaderos ?? lote.parqueaderos ?? '-'}</TableCell>
+                  <TableCell>{formatCurrency(Number(lote.plano_valor ?? lote.valor ?? 0))}</TableCell>
                   <TableCell>{lote.etapa_nombre || '-'}</TableCell>
                   <TableCell>
                     <LoteEstadoSelect loteId={lote.id} currentEstado={lote.estado} />

@@ -9,9 +9,10 @@ import { VerLoteDialog } from '@/components/dashboard/ver-lote-dialog'
 export default async function LotesPage() {
   const sql = getDb()
   const lotes = await sql`
-    SELECT l.*, e.nombre as etapa_nombre 
+    SELECT l.*, e.nombre as etapa_nombre, p.valor as plano_valor, p.area_m2 as plano_area_m2, p.cuartos as plano_cuartos, p.banos as plano_banos, p.parqueaderos as plano_parqueaderos
     FROM lotes l 
     LEFT JOIN etapas e ON l.etapa_id = e.id 
+    LEFT JOIN planos p ON l.plano_id = p.id
     ORDER BY l.codigo ASC
   `
 
@@ -23,7 +24,14 @@ export default async function LotesPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {lotes.map((lote) => (
+        {lotes.map((lote) => {
+          const area = Number(lote.plano_area_m2 ?? lote.area_m2 ?? 0)
+          const precio = Number(lote.plano_valor ?? lote.valor ?? 0)
+          const cuartos = lote.plano_cuartos ?? lote.cuartos ?? 0
+          const banos = lote.plano_banos ?? lote.banos ?? 0
+          const parqueaderos = lote.plano_parqueaderos ?? lote.parqueaderos ?? 0
+
+          return (
           <Card key={lote.id} className="overflow-hidden flex flex-col">
             {/* Imagen */}
             <div className="relative h-40 bg-muted">
@@ -53,20 +61,20 @@ export default async function LotesPage() {
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div className="flex items-center gap-2">
                   <Maximize2 className="h-4 w-4 text-muted-foreground" />
-                  <span>{Number(lote.area_m2)} m²</span>
+                  <span>{area > 0 ? `${area} m²` : '—'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Sofa className="h-4 w-4 text-muted-foreground" />
-                  <span>{lote.cuartos} cuartos</span>
+                  <span>{cuartos} cuartos</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Waves className="h-4 w-4 text-muted-foreground" />
-                  <span>{lote.banos} baños</span>
+                  <span>{banos} baños</span>
                 </div>
-                {lote.parqueaderos > 0 && (
+                {parqueaderos > 0 && (
                   <div className="flex items-center gap-2">
                     <ParkingCircle className="h-4 w-4 text-muted-foreground" />
-                    <span>{lote.parqueaderos} parqueaderos</span>
+                    <span>{parqueaderos} parqueaderos</span>
                   </div>
                 )}
               </div>
@@ -80,7 +88,7 @@ export default async function LotesPage() {
 
               {/* Precio */}
               <p className="text-xl font-bold text-primary mt-2">
-                {formatCurrency(Number(lote.valor))}
+                {precio > 0 ? formatCurrency(precio) : 'Consultar'}
               </p>
 
               {lote.descripcion && (
@@ -89,11 +97,12 @@ export default async function LotesPage() {
 
               {/* Botón Ver Información */}
               <div className="mt-auto pt-2">
-                <VerLoteDialog lote={lote} />
+                <VerLoteDialog lote={{ ...lote, plano_area_m2: lote.plano_area_m2, plano_valor: lote.plano_valor, plano_cuartos: lote.plano_cuartos, plano_banos: lote.plano_banos, plano_parqueaderos: lote.plano_parqueaderos }} />
               </div>
             </CardContent>
           </Card>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

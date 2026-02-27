@@ -30,23 +30,24 @@ export function ReservaLoteDialog({ lote, onClose }: ReservaLoteDialogProps) {
   const [numCuotas, setNumCuotas] = useState('12')
   const [cuotaInicial, setCuotaInicial] = useState('20')
 
+  // Preferir valores del `plano` si existen
+  const precio = Number((lote as any).plano_valor ?? lote.valor ?? 0)
+  const cuartos = (lote as any).plano_cuartos ?? lote.cuartos ?? 0
+  const banos = (lote as any).plano_banos ?? lote.banos ?? 0
+
   // Calcular cuota inicial dinámica basada en características del lote
   const cuotaInicialCalculada = useMemo(() => {
     let porcentaje = parseFloat(cuotaInicial) || 20
-    
-    // Ajuste basado en cuartos
-    if (lote.cuartos > 3) porcentaje += 5
-    
-    // Ajuste basado en baños
-    if (lote.banos > 2) porcentaje += 3
-    
-    // Minimo 10%, máximo 50%
-    porcentaje = Math.max(10, Math.min(50, porcentaje))
-    
-    return (lote.valor * porcentaje) / 100
-  }, [cuotaInicial, lote.cuartos, lote.banos, lote.valor])
 
-  const saldoPendiente = lote.valor - cuotaInicialCalculada
+    if (cuartos > 3) porcentaje += 5
+    if (banos > 2) porcentaje += 3
+
+    porcentaje = Math.max(10, Math.min(50, porcentaje))
+
+    return (precio * porcentaje) / 100
+  }, [cuotaInicial, cuartos, banos, precio])
+
+  const saldoPendiente = precio - cuotaInicialCalculada
   const valorPorCuota = numCuotas ? saldoPendiente / parseInt(numCuotas) : 0
 
   const handleClose = () => {
@@ -161,7 +162,7 @@ export function ReservaLoteDialog({ lote, onClose }: ReservaLoteDialogProps) {
             
             <div className="grid grid-cols-2 gap-2 text-sm">
               <span className="text-muted-foreground">Valor Total del Lote:</span>
-              <span className="font-semibold text-right">{formatCurrency(lote.valor)}</span>
+              <span className="font-semibold text-right">{precio > 0 ? formatCurrency(precio) : 'Consultar'}</span>
               
               <span className="text-muted-foreground">Cuota Inicial ({parseFloat(cuotaInicial)}%):</span>
               <span className="font-semibold text-right text-primary">

@@ -5,7 +5,7 @@ import { getSession } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
-import { sendPaymentApprovedEmail } from '@/lib/email'
+import { sendPaymentApprovedEmail, sendPaymentRejectedEmail } from '@/lib/email'
 import { formatCurrency } from '@/lib/format'
 
 async function requireAdmin() {
@@ -78,9 +78,9 @@ export async function crearLoteAction(_prevState: unknown, formData: FormData) {
   let finalBanos = parsed.data.banos
   let finalParqueaderos = parsed.data.parqueaderos
   if (parsed.data.plano_id) {
-    const planos = await sql`SELECT num_cuartos, banos, parqueaderos FROM planos WHERE id = ${Number(parsed.data.plano_id)}`
+    const planos = await sql`SELECT cuartos, banos, parqueaderos FROM planos WHERE id = ${Number(parsed.data.plano_id)}`
     if (planos.length > 0) {
-      finalCuartos = Number(planos[0].num_cuartos || 0)
+      finalCuartos = Number(planos[0].cuartos || 0)
       finalBanos = Number(planos[0].banos || 0)
       finalParqueaderos = Number(planos[0].parqueaderos || 0)
     }
@@ -123,9 +123,9 @@ export async function actualizarLoteAction(_prevState: unknown, formData: FormDa
   let finalBanos = parsed.data.banos
   let finalParqueaderos = parsed.data.parqueaderos
   if (parsed.data.plano_id) {
-    const planos = await sql`SELECT num_cuartos, banos, parqueaderos FROM planos WHERE id = ${Number(parsed.data.plano_id)}`
+    const planos = await sql`SELECT cuartos, banos, parqueaderos FROM planos WHERE id = ${Number(parsed.data.plano_id)}`
     if (planos.length > 0) {
-      finalCuartos = Number(planos[0].num_cuartos || 0)
+      finalCuartos = Number(planos[0].cuartos || 0)
       finalBanos = Number(planos[0].banos || 0)
       finalParqueaderos = Number(planos[0].parqueaderos || 0)
     }
@@ -162,53 +162,165 @@ export async function aprobarPagoAction(pagoId: number) {
   await requireAdmin()
   const sql = getDb()
 
+  // 1. Obtener el pago a aprobar
   const pagos = await sql`SELECT * FROM pagos WHERE id = ${pagoId}`
   if (pagos.length === 0) return
 
   const pago = pagos[0]
-  await sql`UPDATE pagos SET estado = 'aprobado' WHERE id = ${pagoId}`
-  await sql`UPDATE compras SET saldo_pendiente = saldo_pendiente - ${pago.monto} WHERE id = ${pago.compra_id}`
 
-  // Check if fully paid
-  const compra = await sql`SELECT * FROM compras WHERE id = ${pago.compra_id}`
-  if (compra.length > 0 && Number(compra[0].saldo_pendiente) <= 0) {
-    await sql`UPDATE compras SET estado = 'completada', saldo_pendiente = 0 WHERE id = ${pago.compra_id}`
-    await sql`UPDATE lotes SET estado = 'vendido' WHERE id = ${compra[0].lote_id}`
+  // 2. Obtener la compra relacionada
+  const compras = await sql`SELECT * FROM compras WHERE id = ${pago.compra_id}`
+  if (compras.length === 0) return
+
+  const compra = compras[0]
+  const valorTotal = Number(compra.valor_total)
+  const valorCuota = Number(compra.valor_cuota)
+  const cuotaInicial = Number(compra.cuota_inicial)
+
+  // 3. Calcular total pagado antes de este pago (solo aprobados)
+  const pagosAnteriores = await sql`
+    SELECT COALESCE(SUM(monto), 0) as total 
+    FROM pagos 
+    WHERE compra_id = ${compra.id} AND estado = 'aprobado' AND id != ${pagoId}
+  `
+  const totalPagadoAnterior = Number(pagosAnteriores[0].total)
+
+  // 4. Calcular total après este pago
+  const montoPago = Number(pago.monto)
+  const totalPagadoNuevo = totalPagadoAnterior + montoPago
+
+  // 5. Calcular nuevo saldo pendiente (nunca menor que 0)
+  const nuevoSaldo = Math.max(0, valorTotal - totalPagadoNuevo)
+
+  // 6. Calcular cuotas pagadas correctamente
+  // Contar cuota inicial pagada
+  const tieneCuotaInicialPagada = await sql`
+    SELECT COUNT(*) as count 
+    FROM pagos 
+    WHERE compra_id = ${compra.id} AND estado = 'aprobado' AND tipo = 'cuota_inicial'
+  `
+  const cuotaInicialPagada = Number(tieneCuotaInicialPagada[0].count) > 0 || pago.tipo === 'cuota_inicial'
+
+  // Contar cuotas normales pagadas (incluyendo las que puede cubrir el pago adicional)
+  const cuotasNormalesAnteriores = await sql`
+    SELECT COUNT(*) as count 
+    FROM pagos 
+    WHERE compra_id = ${compra.id} AND estado = 'aprobado' AND tipo = 'cuota_normal' AND id != ${pagoId}
+  `
+  let cuotasPagadas = Number(cuotasNormalesAnteriores[0].count)
+
+  // Si el pago actual es una cuota normal, incrementamos el contador
+  if (pago.tipo === 'cuota_normal') {
+    cuotasPagadas += 1
   }
 
-  // Send paz y salvo email to the user who owns the compra
+  // Si es un pago adicional, calcular cuántas cuotas cubre
+  if (pago.tipo === 'adicional' && valorCuota > 0) {
+    // Calcular cuánto queda después de la cuota inicial
+    const saldoSinInicial = Math.max(0, valorTotal - cuotaInicial - totalPagadoAnterior)
+    // Cuántas cuotas adicionales cubre el pago
+    const cuotasCubiertas = Math.floor(montoPago / valorCuota)
+    cuotasPagadas += cuotasCubiertas
+  }
+
+  // 7. Determinar estado de la compra
+  // La compra está completa solo cuando totalPagado >= valorTotal
+  const estaCompleta = totalPagadoNuevo >= valorTotal
+
+  // 8. Actualizar el pago a aprobado
+  await sql`UPDATE pagos SET estado = 'aprobado' WHERE id = ${pagoId}`
+
+  // 9. Actualizar la compra con los valores correctos
+  if (estaCompleta) {
+    // Si está completamente pagada
+    await sql`
+      UPDATE compras 
+      SET estado = 'completada', saldo_pendiente = 0 
+      WHERE id = ${compra.id}
+    `
+    // Actualizar estado del lote
+    await sql`UPDATE lotes SET estado = 'vendido' WHERE id = ${compra.lote_id}`
+  } else {
+    // Si no está completa, actualizar solo el saldo pendiente
+    await sql`
+      UPDATE compras 
+      SET saldo_pendiente = ${nuevoSaldo} 
+      WHERE id = ${compra.id}
+    `
+  }
+
+  // 10. Enviar email de confirmación (si aplica)
   try {
-    if (compra.length > 0) {
-      const clienteId = compra[0].cliente_id
-      const usuarios = await sql`SELECT nombre, email FROM usuarios WHERE id = ${clienteId}`
-      if (usuarios.length > 0) {
-        const usuario = usuarios[0]
-        await sendPaymentApprovedEmail(usuario.email, {
-          nombre: usuario.nombre,
-          monto: formatCurrency ? formatCurrency(pago.monto) : String(pago.monto),
-          lote: String(compra[0].lote_id),
-          fecha: new Date().toISOString(),
-          tipo: pago.tipo || 'cuota_normal',
-        })
-      }
+    const usuarios = await sql`SELECT nombre, email FROM usuarios WHERE id = ${compra.cliente_id}`
+    if (usuarios.length > 0) {
+      const usuario = usuarios[0]
+      await sendPaymentApprovedEmail(usuario.email, {
+        nombre: usuario.nombre,
+        monto: formatCurrency(montoPago),
+        lote: String(compra.lote_id),
+        fecha: new Date().toISOString(),
+        tipo: pago.tipo || 'cuota_normal',
+      })
     }
   } catch (e) {
     console.error('Error sending approved email:', e)
   }
 
+  // 11. Revalidar paths
   revalidatePath('/admin/pagos')
   revalidatePath('/admin/compras')
-  // Revalidate dashboard routes so clients see updates (pagos/compras/lotes)
   revalidatePath('/dashboard/pagos')
   revalidatePath('/dashboard/compras')
   revalidatePath('/dashboard/lotes')
 }
 
-export async function rechazarPagoAction(pagoId: number) {
+export async function rechazarPagoAction(pagoId: number, motivo?: string) {
   await requireAdmin()
   const sql = getDb()
+
+  // Validar que existe motivo
+  if (!motivo || motivo.trim().length === 0) {
+    return { error: 'El motivo del rechazo es obligatorio' }
+  }
+
+  // Obtener el pago antes de rechazarlo para enviar el correo
+  const pagos = await sql`SELECT * FROM pagos WHERE id = ${pagoId}`
+  if (pagos.length === 0) return { error: 'Pago no encontrado' }
+
+  const pago = pagos[0]
+
+  // Solo rechazar si está en estado pendiente
+  if (pago.estado !== 'pendiente') {
+    return { error: 'El pago ya fue procesado anteriormente' }
+  }
+
+  // Obtener información de la compra y el cliente para el correo
+  const compras = await sql`SELECT c.*, l.codigo as lote_codigo, u.nombre, u.email FROM compras c JOIN lotes l ON c.lote_id = l.id JOIN usuarios u ON c.cliente_id = u.id WHERE c.id = ${pago.compra_id}`
+  
+  // Actualizar el estado del pago a rechazado
   await sql`UPDATE pagos SET estado = 'rechazado' WHERE id = ${pagoId}`
+
+  // Enviar correo de rechazo al cliente
+  if (compras.length > 0) {
+    const compra = compras[0]
+    try {
+      await sendPaymentRejectedEmail(compra.email, {
+        nombre: compra.nombre,
+        monto: formatCurrency(Number(pago.monto)),
+        lote: compra.lote_codigo,
+        fecha: new Date(pago.fecha_pago).toISOString(),
+        tipo: pago.tipo || 'cuota_normal',
+        motivo: motivo.trim(),
+      })
+    } catch (e) {
+      console.error('Error sending rejection email:', e)
+    }
+  }
+
+  // Revalidar paths
   revalidatePath('/admin/pagos')
+  revalidatePath('/dashboard/pagos')
+  return { success: true }
 }
 
 // --- Purchase management ---
@@ -231,11 +343,11 @@ export async function crearCompraAction(_prevState: unknown, formData: FormData)
   if (!parsed.success) return { error: parsed.error.errors[0].message }
 
   const sql = getDb()
-  const lotes = await sql`SELECT * FROM lotes WHERE id = ${parsed.data.lote_id} AND estado = 'disponible'`
+  const lotes = await sql`SELECT l.*, p.valor as plano_valor FROM lotes l LEFT JOIN planos p ON l.plano_id = p.id WHERE l.id = ${parsed.data.lote_id} AND l.estado = 'disponible'`
   if (lotes.length === 0) return { error: 'Lote no disponible' }
 
   const lote = lotes[0]
-  const valorTotal = Number(lote.valor)
+  const valorTotal = Number(lote.plano_valor ?? lote.valor ?? 0)
   const cuotaInicial = parsed.data.cuota_inicial
   const saldoPendiente = valorTotal - cuotaInicial
   const valorCuota = parsed.data.num_cuotas > 0 ? saldoPendiente / parsed.data.num_cuotas : 0
@@ -362,14 +474,14 @@ export async function crearPlanoAction(_prevState: unknown, formData: FormData) 
   const nombre = formData.get('nombre') as string
   const descripcion = formData.get('descripcion') as string
   const imagen_url = getOptionalString(formData.get('imagen_url'))
-  const num_cuartos = Number(formData.get('num_cuartos') || 0)
+  const cuartos = Number(formData.get('cuartos') || 0)
   const banos = Number(formData.get('banos') || 0)
   const parqueaderos = Number(formData.get('parqueaderos') || 0)
 
   if (!nombre) return { error: 'El nombre es requerido' }
 
   const sql = getDb()
-  await sql`INSERT INTO planos (nombre, descripcion, imagen_url, num_cuartos, banos, parqueaderos, created_at) VALUES (${nombre}, ${descripcion || null}, ${imagen_url ?? null}, ${num_cuartos}, ${banos}, ${parqueaderos}, NOW())`
+  await sql`INSERT INTO planos (nombre, descripcion, imagen_url, cuartos, banos, parqueaderos, created_at) VALUES (${nombre}, ${descripcion || null}, ${imagen_url ?? null}, ${cuartos}, ${banos}, ${parqueaderos}, NOW())`
   revalidatePath('/admin/planos')
   return { success: true }
 }
@@ -380,14 +492,14 @@ export async function actualizarPlanoAction(_prevState: unknown, formData: FormD
   const nombre = formData.get('nombre') as string
   const descripcion = formData.get('descripcion') as string
   const imagen_url = getOptionalString(formData.get('imagen_url'))
-  const num_cuartos = Number(formData.get('num_cuartos') || 0)
+  const cuartos = Number(formData.get('cuartos') || 0)
   const banos = Number(formData.get('banos') || 0)
   const parqueaderos = Number(formData.get('parqueaderos') || 0)
 
   if (!nombre) return { error: 'El nombre es requerido' }
   const sql = getDb()
   try {
-    await sql`UPDATE planos SET nombre = ${nombre}, descripcion = ${descripcion || null}, imagen_url = ${imagen_url ?? null}, num_cuartos = ${num_cuartos}, banos = ${banos}, parqueaderos = ${parqueaderos} WHERE id = ${id}`
+    await sql`UPDATE planos SET nombre = ${nombre}, descripcion = ${descripcion || null}, imagen_url = ${imagen_url ?? null}, cuartos = ${cuartos}, banos = ${banos}, parqueaderos = ${parqueaderos} WHERE id = ${id}`
   } catch (e) {
     console.error('Error al actualizar plano:', e)
     return { error: 'Error al actualizar el plano' }

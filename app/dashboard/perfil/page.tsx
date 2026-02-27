@@ -8,7 +8,9 @@ export default async function PerfilPage() {
   if (!session) redirect('/login')
 
   const sql = getDb()
-  const users = await sql`SELECT nombre, apellido, email, telefono, created_at, verificado FROM usuarios WHERE id = ${session.userId}`
+  const userId = Number(session.userId)
+  if (Number.isNaN(userId)) redirect('/login')
+  const users = await sql`SELECT nombre, apellido, email, telefono, created_at, verificado FROM usuarios WHERE id = ${userId}`
 
   if (users.length === 0) redirect('/login')
   const user = users[0]

@@ -9,9 +9,10 @@ import Link from 'next/link'
 export async function LotsSection() {
   const sql = getDb()
   const lotes = await sql`
-    SELECT l.*, e.nombre as etapa_nombre 
+    SELECT l.*, e.nombre as etapa_nombre, p.valor as plano_valor, p.area_m2 as plano_area_m2, p.cuartos as plano_cuartos
     FROM lotes l 
     LEFT JOIN etapas e ON l.etapa_id = e.id 
+    LEFT JOIN planos p ON l.plano_id = p.id
     WHERE l.estado = 'disponible' 
     ORDER BY l.codigo ASC 
     LIMIT 6
@@ -35,7 +36,10 @@ export async function LotsSection() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {lotes.map((lote) => (
+            {lotes.map((lote) => {
+              const area = Number(lote.plano_area_m2 ?? lote.area_m2 ?? 0)
+              const precio = Number(lote.plano_valor ?? lote.valor ?? 0)
+              return (
               <Card key={lote.id} className="group overflow-hidden transition-shadow hover:shadow-md">
                 <div className="relative h-48 bg-muted">
                   {lote.imagen_url ? (
@@ -63,7 +67,7 @@ export async function LotsSection() {
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Maximize2 className="h-4 w-4" />
-                      {Number(lote.area_m2)} m2
+                      {area > 0 ? `${area} m2` : '—'}
                     </div>
                     {lote.ubicacion && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -72,7 +76,7 @@ export async function LotsSection() {
                       </div>
                     )}
                     <p className="mt-1 text-2xl font-bold text-primary">
-                      {formatCurrency(Number(lote.valor))}
+                      {precio > 0 ? formatCurrency(precio) : 'Consultar'}
                     </p>
                   </div>
                 </CardContent>
@@ -85,7 +89,8 @@ export async function LotsSection() {
                   </Link>
                 </CardFooter>
               </Card>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>

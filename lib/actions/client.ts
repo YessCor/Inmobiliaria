@@ -26,6 +26,8 @@ const reservaSchema = z.object({
 export async function crearReservaAction(_prevState: unknown, formData: FormData) {
   const session = await getSession()
   if (!session) return { error: 'No autorizado' }
+  const userId = Number(session.userId)
+  if (Number.isNaN(userId)) return { error: 'No autorizado' }
 
   const raw = {
     lote_id: formData.get('lote_id'),
@@ -42,12 +44,12 @@ export async function crearReservaAction(_prevState: unknown, formData: FormData
 
   const sql = getDb()
 
-  // Get the lot details
-  const lotes = await sql`SELECT * FROM lotes WHERE id = ${parsed.data.lote_id} AND estado = 'disponible'`
+  // Get the lot details (valor comes from associated plano)
+  const lotes = await sql`SELECT l.*, p.valor as plano_valor FROM lotes l LEFT JOIN planos p ON l.plano_id = p.id WHERE l.id = ${parsed.data.lote_id} AND l.estado = 'disponible'`
   if (lotes.length === 0) return { error: 'Lote no disponible' }
 
   const lote = lotes[0]
-  const valorTotal = Number(lote.valor)
+  const valorTotal = Number(lote.plano_valor ?? lote.valor ?? 0)
   const cuotaInicial = (valorTotal * parsed.data.cuota_inicial_porcentaje) / 100
   const saldoPendiente = valorTotal - cuotaInicial
   const valorCuota = parsed.data.num_cuotas > 0 ? saldoPendiente / parsed.data.num_cuotas : 0
@@ -55,7 +57,7 @@ export async function crearReservaAction(_prevState: unknown, formData: FormData
   // Create reservation
   await sql`
     INSERT INTO compras (cliente_id, lote_id, valor_total, cuota_inicial, num_cuotas, valor_cuota, saldo_pendiente, estado)
-    VALUES (${session.userId}, ${parsed.data.lote_id}, ${valorTotal}, ${cuotaInicial}, ${parsed.data.num_cuotas}, ${valorCuota}, ${saldoPendiente}, 'activa')
+    VALUES (${userId}, ${parsed.data.lote_id}, ${valorTotal}, ${cuotaInicial}, ${parsed.data.num_cuotas}, ${valorCuota}, ${saldoPendiente}, 'activa')
   `
 
   // Update lot status
@@ -69,6 +71,8 @@ export async function crearReservaAction(_prevState: unknown, formData: FormData
 export async function registrarPagoAction(_prevState: unknown, formData: FormData) {
   const session = await getSession()
   if (!session) return { error: 'No autorizado' }
+  const userId = Number(session.userId)
+  if (Number.isNaN(userId)) return { error: 'No autorizado' }
 
   const raw = {
     compra_id: formData.get('compra_id'),
@@ -87,13 +91,24 @@ export async function registrarPagoAction(_prevState: unknown, formData: FormDat
 
   // Verify the purchase belongs to this user
   const compras = await sql`
-    SELECT * FROM compras WHERE id = ${parsed.data.compra_id} AND cliente_id = ${session.userId}
+    SELECT * FROM compras WHERE id = ${parsed.data.compra_id} AND cliente_id = ${userId}
   `
   if (compras.length === 0) {
     return { error: 'Compra no encontrada' }
   }
 
   const compra = compras[0]
+  
+  // Validar que el monto no sea mayor al saldo pendiente
+  const saldoPendiente = Number(compra.saldo_pendiente) || 0
+  if (parsed.data.monto > saldoPendiente) {
+    return { error: `El monto no puede ser mayor al saldo pendiente (${formatCurrency(saldoPendiente)})` }
+  }
+
+  // Validar que el monto sea mayor a 0
+  if (parsed.data.monto <= 0) {
+    return { error: 'El monto debe ser mayor a 0' }
+  }
 
   // Determine final amount depending on tipo
   const tipo = parsed.data.tipo || 'cuota_normal'
@@ -141,6 +156,8 @@ const pqrsSchema = z.object({
 export async function crearPqrsAction(_prevState: unknown, formData: FormData) {
   const session = await getSession()
   if (!session) return { error: 'No autorizado' }
+  const userId = Number(session.userId)
+  if (Number.isNaN(userId)) return { error: 'No autorizado' }
 
   const raw = {
     tipo: formData.get('tipo'),
@@ -157,7 +174,7 @@ export async function crearPqrsAction(_prevState: unknown, formData: FormData) {
 
   await sql`
     INSERT INTO pqrs (cliente_id, tipo, asunto, descripcion, estado)
-    VALUES (${session.userId}, ${parsed.data.tipo}, ${parsed.data.asunto}, ${parsed.data.descripcion}, 'pendiente')
+    VALUES (${userId}, ${parsed.data.tipo}, ${parsed.data.asunto}, ${parsed.data.descripcion}, 'pendiente')
   `
 
   revalidatePath('/dashboard/pqrs')
@@ -167,6 +184,8 @@ export async function crearPqrsAction(_prevState: unknown, formData: FormData) {
 export async function actualizarPerfilAction(_prevState: unknown, formData: FormData) {
   const session = await getSession()
   if (!session) return { error: 'No autorizado' }
+  const userId = Number(session.userId)
+  if (Number.isNaN(userId)) return { error: 'No autorizado' }
 
   const nombre = formData.get('nombre') as string
   const apellido = formData.get('apellido') as string
@@ -180,7 +199,7 @@ export async function actualizarPerfilAction(_prevState: unknown, formData: Form
 
   await sql`
     UPDATE usuarios SET nombre = ${nombre}, apellido = ${apellido}, telefono = ${telefono || null}, updated_at = NOW()
-    WHERE id = ${session.userId}
+    WHERE id = ${userId}
   `
 
   revalidatePath('/dashboard/perfil')

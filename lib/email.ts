@@ -205,3 +205,65 @@ export async function sendPaymentApprovedEmail(
     return { error: 'Error al enviar email de aprobacion', details: String(error) }
   }
 }
+
+export async function sendPaymentRejectedEmail(
+  to: string,
+  data: {
+    nombre: string
+    monto: string
+    lote: string
+    fecha: string
+    tipo: string
+    motivo?: string
+  }
+) {
+  try {
+    const resp = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: Array.isArray(to) ? to : [to],
+      subject: `Pago Rechazado - Lote ${data.lote}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background-color: #EF4444; padding: 20px; border-radius: 8px 8px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 24px;">Pago Rechazado</h1>
+          </div>
+          <div style="border: 1px solid #e5e7eb; border-top: none; padding: 24px; border-radius: 0 0 8px 8px;">
+            <p style="color: #374151; font-size: 16px;">Hola <strong>${data.nombre}</strong>,</p>
+            <p style="color: #374151;">Lamentamos informarte que tu pago ha sido <strong>rechazado</strong> por el equipo administrativo.</p>
+            <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+              <tr style="border-bottom: 1px solid #e5e7eb;">
+                <td style="padding: 12px; color: #6b7280; font-weight: 600;">Lote</td>
+                <td style="padding: 12px; color: #111827;">${data.lote}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #e5e7eb;">
+                <td style="padding: 12px; color: #6b7280; font-weight: 600;">Monto</td>
+                <td style="padding: 12px; color: #111827; font-weight: 700;">${data.monto}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #e5e7eb;">
+                <td style="padding: 12px; color: #6b7280; font-weight: 600;">Tipo de Pago</td>
+                <td style="padding: 12px; color: #111827;">${data.tipo}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #e5e7eb;">
+                <td style="padding: 12px; color: #6b7280; font-weight: 600;">Fecha</td>
+                <td style="padding: 12px; color: #111827;">${data.fecha}</td>
+              </tr>
+              ${data.motivo ? `
+              <tr style="border-bottom: 1px solid #e5e7eb;">
+                <td style="padding: 12px; color: #6b7280; font-weight: 600;">Motivo</td>
+                <td style="padding: 12px; color: #EF4444;">${data.motivo}</td>
+              </tr>
+              ` : ''}
+            </table>
+            <p style="color: #6b7280; font-size: 14px;">Por favor, contacta al equipo administrativo para mas informacion o realiza un nuevo pago con los datos correctos.</p>
+            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+            <p style="color: #9ca3af; font-size: 12px; text-align: center;">Terranova Inmobiliaria - Tu hogar te espera</p>
+          </div>
+        </div>
+      `,
+    })
+    return { success: true, resp }
+  } catch (error) {
+    console.error('Error sending payment rejected email:', error)
+    return { error: 'Error al enviar email de rechazo', details: String(error) }
+  }
+}
