@@ -13,9 +13,17 @@ export default async function PqrsPage() {
   const sql = getDb()
   const userId = Number(session.userId)
   if (Number.isNaN(userId)) redirect('/login')
-  const pqrs = await sql`
+  const pqrs = (await sql`
     SELECT * FROM pqrs WHERE cliente_id = ${userId} ORDER BY created_at DESC
-  `
+  `) as Array<{
+    id: number
+    cliente_id: number
+    tipo: string
+    asunto: string
+    descripcion: string
+    estado: string
+    created_at: string
+  }>
 
   return (
     <div>

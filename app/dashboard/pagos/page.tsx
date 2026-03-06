@@ -17,7 +17,7 @@ export default async function PagosPage() {
 
   const sql = getDb()
 
-  const [pagos, compras] = await Promise.all([
+  const [pagos, comprasRaw] = await Promise.all([
     sql`
       SELECT p.*, c.id as compra_num, l.codigo as lote_codigo
       FROM pagos p
@@ -35,6 +35,15 @@ export default async function PagosPage() {
       ORDER BY c.fecha_compra DESC
     `,
   ])
+
+  const compras = comprasRaw as Array<{
+    id: number
+    lote_codigo: string
+    saldo_pendiente: number
+    cuota_inicial?: number
+    valor_cuota?: number
+    cuota_inicial_pagada?: boolean
+  }>
 
   return (
     <div>

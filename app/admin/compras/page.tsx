@@ -7,7 +7,7 @@ import { CrearCompraDialog } from '@/components/admin/crear-compra-dialog'
 
 export default async function AdminComprasPage() {
   const sql = getDb()
-  const [compras, clientes, lotes] = await Promise.all([
+  const [compras, clientesRaw, lotesRaw] = await Promise.all([
     sql`
       SELECT c.*, u.nombre, u.apellido, l.codigo as lote_codigo,
         (SELECT COALESCE(SUM(monto), 0) FROM pagos WHERE compra_id = c.id AND estado = 'aprobado') as total_pagado,
@@ -21,6 +21,9 @@ export default async function AdminComprasPage() {
     sql`SELECT id, nombre, apellido, email FROM usuarios WHERE rol = 'cliente' ORDER BY nombre ASC`,
     sql`SELECT l.id, l.codigo, p.valor as valor FROM lotes l LEFT JOIN planos p ON l.plano_id = p.id WHERE l.estado = 'disponible' ORDER BY l.codigo ASC`,
   ])
+
+  const clientes = clientesRaw as Array<{ id: number; nombre: string; apellido: string; email: string }>
+  const lotes = lotesRaw as Array<{ id: number; codigo: string; valor: number }>
 
   return (
     <div>

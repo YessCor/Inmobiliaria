@@ -9,7 +9,16 @@ import { EliminarUsuarioButton } from '@/components/admin/eliminar-usuario-butto
 
 export default async function AdminUsuariosPage() {
   const sql = getDb()
-  const usuarios = await sql`SELECT id, nombre, apellido, email, telefono, rol, verificado, created_at FROM usuarios ORDER BY created_at DESC`
+  const usuarios = (await sql`SELECT id, nombre, apellido, email, telefono, rol, verificado, created_at FROM usuarios ORDER BY created_at DESC`) as Array<{
+    id: number
+    nombre: string
+    apellido: string
+    email: string
+    telefono: string | null
+    rol: string
+    verificado: boolean
+    created_at: string
+  }>
 
   return (
     <div>

@@ -3,7 +3,13 @@ import { CheckCircle2, Circle, Clock } from 'lucide-react'
 
 export async function StagesSection() {
   const sql = getDb()
-  const etapas = await sql`SELECT * FROM etapas ORDER BY orden ASC`
+  const etapas = (await sql`SELECT * FROM etapas ORDER BY orden ASC`) as Array<{
+    id: number
+    nombre: string
+    descripcion: string
+    orden: number
+    activa: boolean
+  }>
 
   return (
     <section id="etapas" className="bg-background py-20">
