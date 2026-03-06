@@ -477,11 +477,13 @@ export async function crearPlanoAction(_prevState: unknown, formData: FormData) 
   const cuartos = Number(formData.get('cuartos') || 0)
   const banos = Number(formData.get('banos') || 0)
   const parqueaderos = Number(formData.get('parqueaderos') || 0)
+  const area_m2 = Number(formData.get('area_m2') || 0)
+  const valor = Number(formData.get('valor') || 0)
 
   if (!nombre) return { error: 'El nombre es requerido' }
 
   const sql = getDb()
-  await sql`INSERT INTO planos (nombre, descripcion, imagen_url, cuartos, banos, parqueaderos, created_at) VALUES (${nombre}, ${descripcion || null}, ${imagen_url ?? null}, ${cuartos}, ${banos}, ${parqueaderos}, NOW())`
+  await sql`INSERT INTO planos (nombre, descripcion, imagen_url, cuartos, banos, parqueaderos, area_m2, valor, created_at) VALUES (${nombre}, ${descripcion || null}, ${imagen_url ?? null}, ${cuartos}, ${banos}, ${parqueaderos}, ${area_m2}, ${valor}, NOW())`
   revalidatePath('/admin/planos')
   return { success: true }
 }
@@ -495,11 +497,13 @@ export async function actualizarPlanoAction(_prevState: unknown, formData: FormD
   const cuartos = Number(formData.get('cuartos') || 0)
   const banos = Number(formData.get('banos') || 0)
   const parqueaderos = Number(formData.get('parqueaderos') || 0)
+  const area_m2 = Number(formData.get('area_m2') || 0)
+  const valor = Number(formData.get('valor') || 0)
 
   if (!nombre) return { error: 'El nombre es requerido' }
   const sql = getDb()
   try {
-    await sql`UPDATE planos SET nombre = ${nombre}, descripcion = ${descripcion || null}, imagen_url = ${imagen_url ?? null}, cuartos = ${cuartos}, banos = ${banos}, parqueaderos = ${parqueaderos} WHERE id = ${id}`
+    await sql`UPDATE planos SET nombre = ${nombre}, descripcion = ${descripcion || null}, imagen_url = ${imagen_url ?? null}, cuartos = ${cuartos}, banos = ${banos}, parqueaderos = ${parqueaderos}, area_m2 = ${area_m2}, valor = ${valor} WHERE id = ${id}`
   } catch (e) {
     console.error('Error al actualizar plano:', e)
     return { error: 'Error al actualizar el plano' }
@@ -511,13 +515,13 @@ export async function actualizarPlanoAction(_prevState: unknown, formData: FormD
 export async function eliminarPlanoAction(planoId: number) {
   await requireAdmin()
   const sql = getDb()
-  // Prevent deleting if any lote references this plano
-  const referencias = await sql`SELECT COUNT(*) as count FROM lotes WHERE plano_id = ${planoId}`
-  if (referencias[0].count > 0) return { error: 'No puedes eliminar un plano que está en uso por lotes' }
-
   try {
+    // First unlink any lotes that reference this plano to allow deletion
+    await sql`UPDATE lotes SET plano_id = NULL WHERE plano_id = ${planoId}`
     await sql`DELETE FROM planos WHERE id = ${planoId}`
     revalidatePath('/admin/planos')
+    revalidatePath('/admin/lotes')
+    revalidatePath('/dashboard/lotes')
     return { success: true }
   } catch (e) {
     console.error('Error al eliminar plano:', e)

@@ -34,16 +34,29 @@ export function EditarLoteDialog({ lote, etapas, planos }: EditarLoteDialogProps
   const [open, setOpen] = useState(false)
   const [state, action, pending] = useActionState(actualizarLoteAction, null)
   const [selectedPlano, setSelectedPlano] = useState<string>(lote.plano_id ? String(lote.plano_id) : 'none')
-  const [area, setArea] = useState<string>(String(lote.area_m2 || ''))
-  const [valor, setValor] = useState<string>(String(lote.valor || ''))
+  const [area, setArea] = useState<number | ''>(lote.area_m2 ? Number(lote.area_m2) : '')
+  const [valor, setValor] = useState<number | ''>(lote.valor ? Number(lote.valor) : '')
 
   useEffect(() => {
     if (!open) {
       setSelectedPlano(lote.plano_id ? String(lote.plano_id) : 'none')
-      setArea(String(lote.area_m2 || ''))
-      setValor(String(lote.valor || ''))
+      setArea(lote.area_m2 ? Number(lote.area_m2) : '')
+      setValor(lote.valor ? Number(lote.valor) : '')
     }
   }, [open, lote.plano_id, lote.area_m2, lote.valor])
+
+  const handlePlanoChange = (v: string) => {
+    setSelectedPlano(v)
+    if (v === 'none') {
+      setArea(lote.area_m2 ? Number(lote.area_m2) : '')
+      setValor(lote.valor ? Number(lote.valor) : '')
+    } else {
+      const p = (planos || []).find((pl) => String(pl.id) === v)
+      if (!p) return
+      if (typeof p.area_m2 !== 'undefined') setArea(Number(p.area_m2))
+      if (typeof p.valor !== 'undefined') setValor(Number(p.valor))
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -82,25 +95,13 @@ export function EditarLoteDialog({ lote, etapas, planos }: EditarLoteDialogProps
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor={`area_m2-${lote.id}`}>Area (m2)</Label>
-              <Input id={`area_m2-${lote.id}`} name="area_m2" type="number" min="1" step="0.01" defaultValue={undefined} value={area} onChange={(e) => setArea(e.target.value)} required disabled={selectedPlano !== 'none'} />
+              <Input id={`area_m2-${lote.id}`} name="area_m2" type="number" min="1" step="0.01" defaultValue={undefined} value={area === '' ? '' : String(area)} onChange={(e) => setArea(e.target.value === '' ? '' : Number(e.target.value))} required disabled={selectedPlano !== 'none'} />
             </div>
           </div>
 
           <div className="flex flex-col gap-2">
             <Label htmlFor={`plano_id-${lote.id}`}>Plano (tipo de casa)</Label>
-            <Select name="plano_id" defaultValue={lote.plano_id ? String(lote.plano_id) : 'none'} onValueChange={(v: string) => {
-              setSelectedPlano(v)
-              if (v === 'none') {
-                setArea(String(lote.area_m2 || ''))
-                setValor(String(lote.valor || ''))
-              } else {
-                const p = (planos || []).find((pl) => String(pl.id) === v)
-                if (p) {
-                  if (typeof p.area_m2 !== 'undefined') setArea(String(p.area_m2))
-                  if (typeof p.valor !== 'undefined') setValor(String(p.valor))
-                }
-              }
-            }}>
+            <Select defaultValue={lote.plano_id ? String(lote.plano_id) : 'none'} onValueChange={handlePlanoChange}>
               <SelectTrigger id={`plano_id-${lote.id}`}>
                 <SelectValue placeholder="Sin plano" />
               </SelectTrigger>
@@ -116,7 +117,7 @@ export function EditarLoteDialog({ lote, etapas, planos }: EditarLoteDialogProps
 
           <div className="flex flex-col gap-2">
             <Label htmlFor={`valor-${lote.id}`}>Valor ($)</Label>
-            <Input id={`valor-${lote.id}`} name="valor" type="number" min="1" defaultValue={undefined} value={valor} onChange={(e) => setValor(e.target.value)} required disabled={selectedPlano !== 'none'} />
+            <Input id={`valor-${lote.id}`} name="valor" type="number" min="1" defaultValue={undefined} value={valor === '' ? '' : String(valor)} onChange={(e) => setValor(e.target.value === '' ? '' : Number(e.target.value))} required disabled={selectedPlano !== 'none'} />
           </div>
 
           <div className="flex flex-col gap-2">
@@ -152,6 +153,14 @@ export function EditarLoteDialog({ lote, etapas, planos }: EditarLoteDialogProps
           </div>
 
           {/* Hidden inputs to ensure cuartos/banos/parqueaderos are submitted (server will override if plano_id present) */}
+          {/* Ensure area and valor are submitted even when inputs are disabled (when a plano is selected) */}
+          {selectedPlano !== 'none' && (
+            <>
+              <input type="hidden" name="plano_id" value={selectedPlano} />
+              {area !== '' && <input type="hidden" name="area_m2" value={String(area)} />}
+              {valor !== '' && <input type="hidden" name="valor" value={String(valor)} />}
+            </>
+          )}
           <input type="hidden" name="cuartos" value={(selectedPlano === 'none' ? String(lote.cuartos || 0) : String((planos || []).find((pl) => String(pl.id) === selectedPlano)?.cuartos || 0))} />
           <input type="hidden" name="banos" value={(selectedPlano === 'none' ? String(lote.banos || 0) : String((planos || []).find((pl) => String(pl.id) === selectedPlano)?.banos || 0))} />
           <input type="hidden" name="parqueaderos" value={(selectedPlano === 'none' ? String(lote.parqueaderos || 0) : String((planos || []).find((pl) => String(pl.id) === selectedPlano)?.parqueaderos || 0))} />

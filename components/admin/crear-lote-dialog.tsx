@@ -19,8 +19,8 @@ export function CrearLoteDialog({ etapas, planos }: Props) {
   const [open, setOpen] = useState(false)
   const [state, action, pending] = useActionState(crearLoteAction, null)
   const [selectedPlano, setSelectedPlano] = useState<string>('none')
-  const [area, setArea] = useState<string>('')
-  const [valor, setValor] = useState<string>('')
+  const [area, setArea] = useState<number | ''>('')
+  const [valor, setValor] = useState<number | ''>('')
 
   useEffect(() => {
     if (!open) {
@@ -29,6 +29,19 @@ export function CrearLoteDialog({ etapas, planos }: Props) {
       setValor('')
     }
   }, [open])
+
+  const handlePlanoChange = (v: string) => {
+    setSelectedPlano(v)
+    if (v === 'none') {
+      setArea('')
+      setValor('')
+    } else {
+      const p = (planos || []).find((pl) => String(pl.id) === v)
+      if (!p) return
+      if (typeof p.area_m2 !== 'undefined') setArea(Number(p.area_m2))
+      if (typeof p.valor !== 'undefined') setValor(Number(p.valor))
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -58,25 +71,13 @@ export function CrearLoteDialog({ etapas, planos }: Props) {
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="area_m2">Area (m2)</Label>
-              <Input id="area_m2" name="area_m2" type="number" min="1" step="0.01" required value={area} onChange={(e) => setArea(e.target.value)} disabled={selectedPlano !== 'none'} />
+              <Input id="area_m2" name="area_m2" type="number" min="1" step="0.01" required value={area === '' ? '' : String(area)} onChange={(e) => setArea(e.target.value === '' ? '' : Number(e.target.value))} disabled={selectedPlano !== 'none'} />
             </div>
           </div>
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="plano_id">Plano (tipo de casa)</Label>
-            <Select name="plano_id" defaultValue="none" onValueChange={(v: string) => {
-              setSelectedPlano(v)
-              if (v === 'none') {
-                setArea('')
-                setValor('')
-              } else {
-                const p = (planos || []).find((pl) => String(pl.id) === v)
-                if (p) {
-                  if (typeof p.area_m2 !== 'undefined') setArea(String(p.area_m2))
-                  if (typeof p.valor !== 'undefined') setValor(String(p.valor))
-                }
-              }
-            }}>
+            <Select defaultValue="none" onValueChange={handlePlanoChange}>
               <SelectTrigger id="plano_id"><SelectValue placeholder="Sin plano (ingresar atributos manualmente)" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Sin plano</SelectItem>
@@ -90,7 +91,7 @@ export function CrearLoteDialog({ etapas, planos }: Props) {
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="valor">Valor ($)</Label>
-            <Input id="valor" name="valor" type="number" min="1" required value={valor} onChange={(e) => setValor(e.target.value)} disabled={selectedPlano !== 'none'} />
+            <Input id="valor" name="valor" type="number" min="1" required value={valor === '' ? '' : String(valor)} onChange={(e) => setValor(e.target.value === '' ? '' : Number(e.target.value))} disabled={selectedPlano !== 'none'} />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="ubicacion">Ubicacion</Label>
@@ -114,7 +115,15 @@ export function CrearLoteDialog({ etapas, planos }: Props) {
           </div>
           <input type="hidden" name="estado" value="disponible" />
           {/* Hidden fields to submit plano-derived attributes when a plano is selected */}
-          <input type="hidden" name="cuartos" value={(selectedPlano === 'none' ? '0' : String((planos || []).find((pl) => String(pl.id) === selectedPlano)?.cuartos || 0))} />
+          {/* Ensure area and valor are submitted only when they have numeric values */}
+          {selectedPlano !== 'none' && (
+            <>
+              <input type="hidden" name="plano_id" value={selectedPlano} />
+              {area !== '' && <input type="hidden" name="area_m2" value={String(area)} />}
+              {valor !== '' && <input type="hidden" name="valor" value={String(valor)} />}
+            </>
+          )}
+            <input type="hidden" name="cuartos" value={(selectedPlano === 'none' ? '0' : String((planos || []).find((pl) => String(pl.id) === selectedPlano)?.cuartos || 0))} />
           <input type="hidden" name="banos" value={(selectedPlano === 'none' ? '0' : String((planos || []).find((pl) => String(pl.id) === selectedPlano)?.banos || 0))} />
           <input type="hidden" name="parqueaderos" value={(selectedPlano === 'none' ? '0' : String((planos || []).find((pl) => String(pl.id) === selectedPlano)?.parqueaderos || 0))} />
           <div className="flex flex-col gap-2">

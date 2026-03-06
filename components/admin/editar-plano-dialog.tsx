@@ -68,6 +68,16 @@ export function EditarPlanoDialog({ plano }: Props) {
             </div>
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="area_m2">Area (m2)</Label>
+              <Input id="area_m2" name="area_m2" type="number" min="0" step="0.01" defaultValue={String((plano as any).area_m2 ?? 0)} />
+            </div>
+            <div className="flex flex-col gap-4">
+              <Label htmlFor="valor">Valor ($)</Label>
+              <Input id="valor" name="valor" type="number" min="0" step="0.01" defaultValue={String((plano as any).valor ?? 0)} />
+            </div>
+          </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="parqueaderos">Parqueaderos</Label>
             <Input id="parqueaderos" name="parqueaderos" type="number" min="0" defaultValue={String(plano.parqueaderos ?? 0)} />
