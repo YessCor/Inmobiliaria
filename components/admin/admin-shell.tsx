@@ -15,6 +15,7 @@ interface AdminShellProps {
 
 export function AdminShell({ user, children }: AdminShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   useEffect(() => {
     if (!sidebarOpen) return
@@ -29,7 +30,13 @@ export function AdminShell({ user, children }: AdminShellProps) {
 
   return (
     <div className="min-h-screen bg-secondary/30">
-      <AdminSidebar user={user} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <AdminSidebar
+        user={user}
+        open={sidebarOpen}
+        collapsed={sidebarCollapsed}
+        onClose={() => setSidebarOpen(false)}
+      />
+
       {sidebarOpen ? (
         <div
           className="fixed inset-0 z-40 bg-black/40 md:hidden"
@@ -38,11 +45,17 @@ export function AdminShell({ user, children }: AdminShellProps) {
         />
       ) : null}
 
-      <div className="md:pl-64">
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-border bg-background/80 px-4 py-3 backdrop-blur-md md:hidden">
+      <div className={sidebarCollapsed ? 'md:pl-0' : 'md:pl-64'}>
+        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-border bg-background/80 px-4 py-3 backdrop-blur-md">
           <button
             type="button"
-            onClick={() => setSidebarOpen(true)}
+            onClick={() => {
+              if (window.innerWidth >= 768) {
+                setSidebarCollapsed((v) => !v)
+              } else {
+                setSidebarOpen(true)
+              }
+            }}
             aria-label="Abrir menú de navegación"
             className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border bg-background text-foreground shadow-sm hover:bg-background/80 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background"
           >
