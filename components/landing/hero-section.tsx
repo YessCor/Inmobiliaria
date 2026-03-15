@@ -36,7 +36,7 @@ export function HeroSection() {
           </div>
 
           <h1 className="mb-6 text-4xl font-bold leading-tight tracking-tight text-primary-foreground md:text-5xl lg:text-6xl text-balance">
-            Tu lote ideal para construir el hogar de tus suenos
+            Tu lote ideal para construir el hogar de tus sueños
           </h1>
 
           <p className="mb-8 max-w-lg text-lg leading-relaxed text-primary-foreground/80">
