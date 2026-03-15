@@ -377,6 +377,6 @@ MIT License - Proyecto con fines educativos y de demostración.
 
 <div align="center">
 
-Desarrollado con ❤️ para el sector inmobiliario
+Desarrollado por Yessid Cordero.
 
 </div>
