@@ -14,6 +14,9 @@ interface SidebarProps {
     email: string
     rol: string
   }
+  open?: boolean
+  collapsed?: boolean
+  onClose?: () => void
 }
 
 const clientLinks = [
@@ -26,11 +29,24 @@ const clientLinks = [
   { href: '/dashboard/perfil', label: 'Mi Perfil', icon: User },
 ]
 
-export function DashboardSidebar({ user }: SidebarProps) {
+export function DashboardSidebar({ user, open = false, collapsed = false, onClose }: SidebarProps) {
   const pathname = usePathname()
 
+  const handleLinkClick = () => {
+    if (onClose) onClose()
+  }
+
   return (
-    <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
+    <aside
+      className={cn(
+        'fixed inset-y-0 left-0 z-50 h-screen w-64 transform border-r border-sidebar-border bg-sidebar shadow-lg transition-transform duration-300 md:h-screen',
+        // mobile: controlled by `open`
+        open ? 'translate-x-0' : '-translate-x-full',
+        // desktop: visible by default, collapse when `collapsed` is true
+        collapsed ? 'md:-translate-x-full' : 'md:translate-x-0'
+      )}
+      aria-label="Barra lateral de navegación"
+    >
       {/* Brand */}
       <div className="flex items-center gap-2 border-b border-sidebar-border px-6 py-5">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary">
