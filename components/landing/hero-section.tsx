@@ -1,8 +1,21 @@
+'use client'
+
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, MapPin, Shield, TrendingUp } from 'lucide-react'
+import { useTheme } from 'next-themes'
+import { useEffect, useState } from 'react'
 
 export function HeroSection() {
+  const { theme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const isDark = mounted ? resolvedTheme === 'dark' : true
+  const textColor = isDark ? 'text-primary-foreground' : 'text-black'
   return (
     <section className="relative overflow-hidden">
       {/* Background */}
@@ -39,7 +52,7 @@ export function HeroSection() {
               </Button>
             </Link>
             <a href="#lotes">
-              <Button size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
+              <Button size="lg" variant="outline" className={`border-primary-foreground/30 ${textColor} hover:bg-primary-foreground/10`}>
                 Ver lotes disponibles
               </Button>
             </a>
