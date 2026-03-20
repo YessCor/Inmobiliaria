@@ -29,7 +29,18 @@ export function AdminShell({ user, children }: AdminShellProps) {
   }, [sidebarOpen])
 
   return (
-    <div className="min-h-screen bg-secondary/30">
+    <div className="min-h-screen relative">
+      <div
+        className="fixed inset-0 z-0"
+        style={{
+          backgroundImage: 'url(/fondo.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          opacity: 0.7,
+        }}
+      />
+      <div className="relative z-10 min-h-screen bg-black/30">
       <AdminSidebar
         user={user}
         open={sidebarOpen}
@@ -67,6 +78,7 @@ export function AdminShell({ user, children }: AdminShellProps) {
         <main className="flex-1 overflow-auto">
           <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">{children}</div>
         </main>
+      </div>
       </div>
     </div>
   )

@@ -1,0 +1,137 @@
+Inmobiliaria (workspace root)
+
+components.json
+middleware.ts
+next-env.d.ts
+next.config.mjs
+package.json
+pnpm-lock.yaml
+postcss.config.mjs
+tsconfig.json
+
+app/
+  globals.css
+  layout.tsx
+  page.tsx
+  admin/
+    layout.tsx
+    page.tsx
+    compras/
+    etapas/
+    lotes/
+    pagos/
+    planos/
+    pqrs/
+    usuarios/
+  api/
+    auth/
+  dashboard/
+    layout.tsx
+    page.tsx
+    compras/
+    etapas/
+    lotes/
+    pagos/
+    perfil/
+    pqrs/
+  login/
+    page.tsx
+  recuperar/
+    page.tsx
+  registro/
+    page.tsx
+  restablecer/
+    page.tsx
+  verificar/
+    page.tsx
+
+components/
+  theme-provider.tsx
+  theme-toggle.tsx
+  admin/
+    admin-shell.tsx
+    crear-compra-dialog.tsx
+    crear-etapa-dialog.tsx
+    crear-lote-dialog.tsx
+    crear-plano-dialog.tsx
+    crear-usuario-dialog.tsx
+    editar-lote-dialog.tsx
+    editar-plano-dialog.tsx
+    editar-usuario-dialog.tsx
+    eliminar-lote-button.tsx
+    eliminar-plano-button.tsx
+    eliminar-usuario-button.tsx
+    lote-estado-select.tsx
+    pago-actions.tsx
+    responder-pqrs-form.tsx
+    sidebar.tsx
+    toggle-etapa-button.tsx
+  auth/
+    login-form.tsx
+    register-form.tsx
+    verify-form.tsx
+  dashboard/
+    pago-form.tsx
+    perfil-form.tsx
+    pqrs-card.tsx
+    pqrs-form.tsx
+    reserva-lote-dialog.tsx
+    sidebar.tsx
+    ver-lote-dialog.tsx
+  landing/
+    footer.tsx
+    hero-section.tsx
+    lots-section.tsx
+    navbar.tsx
+    stages-section.tsx
+  ui/
+    accordion.tsx
+    alert-dialog.tsx
+    alert.tsx
+    aspect-ratio.tsx
+    avatar.tsx
+    badge.tsx
+    breadcrumb.tsx
+    button-group.tsx
+    ...
+
+hooks/
+  use-mobile.ts
+  use-toast.ts
+
+lib/
+  auth.ts
+  db.ts
+  email.ts
+  format.ts
+  utils.ts
+  actions/
+    ...
+
+public/
+  images/
+
+scripts/
+  001-create-tables.sql
+  002-seed-data.sql
+  003-add-lote-fields.sql
+  004-add-verification-columns.sql
+  005-add-pagos-tipo.sql
+  006-add-planos-fields-and-lote-planoid.sql
+  check-lote-by-codigo.js
+  check-lotes-columns.js
+  check-planos-columns.js
+  run-add-area-m2-to-lotes.js
+  run-add-area-valor-to-planos.js
+  run-add-lote-counters.js
+  run-add-pagos-tipo.js
+  run-add-valor-to-lotes.js
+  run-add-verification-columns.js
+  run-alter-plano-fk-on-delete-set-null.js
+
+styles/
+  globals.css
+
+Notes:
+- This is a non-functional text snapshot of the project layout for analysis purposes.
+- Some directories contain many files (represented with "...").
