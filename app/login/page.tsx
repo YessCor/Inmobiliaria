@@ -1,4 +1,6 @@
 import { LoginForm } from '@/components/auth/login-form'
+import Link from 'next/link'
+import { Home } from 'lucide-react'
 
 export default function LoginPage() {
   return (
@@ -11,6 +13,13 @@ export default function LoginPage() {
       }}
       className="flex items-center justify-center"
     >
+      <Link
+        href="/"
+        className="fixed top-4 left-4 z-50 flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-white backdrop-blur-sm hover:bg-white/30 transition-colors"
+      >
+        <Home className="h-5 w-5" />
+        <span className="text-sm font-medium">Inicio</span>
+      </Link>
       <LoginForm />
     </div>
   )
