@@ -100,7 +100,7 @@ Archivos: `components/admin/admin-shell.tsx`, `components/admin/sidebar.tsx`, `c
 |-------|------|--------|-------|
 | 2026-09-02 | 1 | 44ce4a6 | Fundación: fuentes + tokens + tipografía + sombras |
 | 2026-09-03 | 2-4 | f42fc46 | Navegación (menú móvil + ThemeToggle), Landing (bugs de tema Hero/Footer, Etapas, Lotes), Auth (AuthLayout compartido) |
-| 2026-09-03 | 5 | (este commit) | Paneles: fondo legible y consistente, sidebars (activo + bugs), tablas globales, tarjetas de stats |
+| 2026-09-03 | 5 | b6541cc | Paneles: fondo legible y consistente, sidebars (activo + bugs), tablas globales, tarjetas de stats |
 
 ---
 
