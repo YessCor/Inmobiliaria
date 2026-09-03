@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import VerifyForm from '@/components/auth/verify-form'
+import { AuthLayout } from '@/components/auth/auth-layout'
 import { verifyToken } from '@/lib/actions/verify'
 import { redirect } from 'next/navigation'
 
@@ -14,10 +15,10 @@ export default async function VerifyPage({ searchParams }: { searchParams?: { to
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
-      <Suspense fallback={<div className="text-muted-foreground">Cargando...</div>}>
+    <AuthLayout>
+      <Suspense fallback={<div className="text-white/80">Cargando...</div>}>
         <VerifyForm />
       </Suspense>
-    </div>
+    </AuthLayout>
   )
 }

@@ -13,15 +13,14 @@ export function RegisterForm() {
   const [state, action, pending] = useActionState(registerAction, null)
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
-            <Building2 className="h-6 w-6 text-primary-foreground" />
-          </div>
-          <CardTitle className="text-2xl font-bold text-balance">Crear Cuenta</CardTitle>
-          <CardDescription>Registrate para acceder al sistema inmobiliario</CardDescription>
-        </CardHeader>
+    <Card className="w-full max-w-md border-white/10 shadow-2xl">
+      <CardHeader className="text-center">
+        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary shadow-sm">
+          <Building2 className="h-6 w-6 text-primary-foreground" />
+        </div>
+        <CardTitle className="text-balance text-2xl font-bold">Crear Cuenta</CardTitle>
+        <CardDescription>Registrate para acceder al sistema inmobiliario</CardDescription>
+      </CardHeader>
         <CardContent>
           <form action={action} className="flex flex-col gap-4">
             {state?.error && (
@@ -108,7 +107,6 @@ export function RegisterForm() {
             </p>
           </form>
         </CardContent>
-      </Card>
-    </div>
+    </Card>
   )
 }
