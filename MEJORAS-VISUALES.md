@@ -77,15 +77,20 @@ Nuevo: `components/auth/auth-layout.tsx`
 
 ---
 
-## Paso 5 — Paneles (Admin + Dashboard)  `[ ]` PENDIENTE
+## Paso 5 — Paneles (Admin + Dashboard)  `[x]` COMPLETADO
 
-Archivos: `components/admin/admin-shell.tsx`, `components/admin/sidebar.tsx`, `components/dashboard/dashboard-shell.tsx`, `components/dashboard/sidebar.tsx`, páginas de `app/admin/*` y `app/dashboard/*`
+Archivos: `components/admin/admin-shell.tsx`, `components/admin/sidebar.tsx`, `components/dashboard/dashboard-shell.tsx`, `components/dashboard/sidebar.tsx`, `components/ui/table.tsx`, `app/admin/page.tsx`, `app/dashboard/page.tsx`
 
-- [ ] Unificar el fondo del admin-shell (imagen `/fondo.jpg` al 70% + `bg-black/30` compite con el contenido)
-- [ ] Header de panel: consistencia entre admin y dashboard
-- [ ] Sidebar: item activo, hover, densidad, sección de usuario
-- [ ] Tablas y tarjetas de datos: densidad, cabeceras, estados vacíos
-- [ ] Botón hamburguesa / colapso: comportamiento y foco
+- [x] **admin-shell:** el fondo `/fondo.jpg` al 70% + `bg-black/30` hacía el contenido poco legible (verde oscuro sobre foto oscura). Ahora foto de fondo + scrim `bg-background/90` → textura sutil, todo legible en ambos temas
+- [x] **dashboard-shell:** mismo tratamiento de fondo que admin (antes `bg-secondary/30` plano) → los dos paneles ahora son visualmente consistentes
+- [x] Header de panel: botón hamburguesa con foco accesible (`focus-visible:ring-ring`), hover coherente; etiqueta "Admin" en el header del panel de administración
+- [x] **Sidebars:** `flex flex-col` (faltaba → el bloque de usuario no se anclaba abajo), item activo con barra de acento a la izquierda + icono en color primario, `aria-current="page"`
+- [x] **Bug corregido:** los enlaces del sidebar de cliente no cerraban el menú móvil al navegar (faltaba `onClick={handleLinkClick}`)
+- [x] Sidebar de cliente: bloque de marca con subtítulo "Portal cliente" (paridad con "Admin")
+- [x] **Tablas (`table.tsx`, global):** cabecera con fondo `bg-muted/40`, mayúsculas + tracking, más densidad de padding (`h-11`/`py-2.5`)
+- [x] Tarjetas de estadística (admin + dashboard): icono en caja con tinte primario, número más grande
+- [x] Listas de actividad reciente: colores de estado legibles (`text-amber-600` en vez de `text-chart-4` casi invisible), hover en filas
+- [x] `tsc` limpio ✅ · `next build` compila ✅
 
 ---
 
@@ -94,6 +99,15 @@ Archivos: `components/admin/admin-shell.tsx`, `components/admin/sidebar.tsx`, `c
 | Fecha | Paso | Commit | Notas |
 |-------|------|--------|-------|
 | 2026-09-02 | 1 | 44ce4a6 | Fundación: fuentes + tokens + tipografía + sombras |
-| 2026-09-03 | 2 | (sin commit aún) | Navbar con menú móvil + ThemeToggle con tokens; resuelto conflicto de merge en dashboard/layout |
-| 2026-09-03 | 3 | (sin commit aún) | Landing: bugs de tema en Hero y Footer, timeline de Etapas, tarjetas de Lote |
-| 2026-09-03 | 4 | (sin commit aún) | Auth: AuthLayout compartido, tarjetas y estados consistentes |
+| 2026-09-03 | 2-4 | f42fc46 | Navegación (menú móvil + ThemeToggle), Landing (bugs de tema Hero/Footer, Etapas, Lotes), Auth (AuthLayout compartido) |
+| 2026-09-03 | 5 | (este commit) | Paneles: fondo legible y consistente, sidebars (activo + bugs), tablas globales, tarjetas de stats |
+
+---
+
+## Estado final: los 5 pasos completados ✅
+
+Pendientes menores (fuera del alcance visual, para otra iteración):
+- La landing (`app/page.tsx`) consulta la BD en tiempo de build → conviene `export const dynamic = 'force-dynamic'` o ISR
+- `styles/globals.css` es un archivo huérfano del scaffold (no se importa) → se puede borrar
+- `next-env.d.ts` y `tsconfig.tsbuildinfo` están trackeados en git → deberían ir a `.gitignore`
+- `middleware.ts` usa una convención deprecada en Next 16 (avisa en el build) → renombrar a `proxy.ts`

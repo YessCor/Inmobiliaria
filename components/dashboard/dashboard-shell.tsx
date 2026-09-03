@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactNode, useEffect, useState } from 'react'
-import { Menu, Building2 } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import { DashboardSidebar } from '@/components/dashboard/sidebar'
 
 interface DashboardShellProps {
@@ -30,7 +30,16 @@ export function DashboardShell({ user, children }: DashboardShellProps) {
   }, [sidebarOpen])
 
   return (
-    <div className="min-h-screen bg-secondary/30">
+    <div className="relative min-h-screen">
+      {/* Fondo sutil de marca */}
+      <div
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: 'url(/fondo.jpg)' }}
+        aria-hidden="true"
+      />
+      <div className="fixed inset-0 z-0 bg-background/90 backdrop-blur-[2px] dark:bg-background/88" aria-hidden="true" />
+
+      <div className="relative z-10 min-h-screen">
       <DashboardSidebar
         user={user}
         open={sidebarOpen}
@@ -58,7 +67,7 @@ export function DashboardShell({ user, children }: DashboardShellProps) {
               }
             }}
             aria-label="Abrir menú de navegación"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border bg-background text-foreground shadow-sm hover:bg-background/80 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border bg-background text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -68,6 +77,7 @@ export function DashboardShell({ user, children }: DashboardShellProps) {
         <main className="flex-1 overflow-auto">
           <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">{children}</div>
         </main>
+      </div>
       </div>
     </div>
   )

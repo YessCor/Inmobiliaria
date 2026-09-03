@@ -49,26 +49,28 @@ export default async function DashboardPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Bienvenido, {session.nombre}
         </h1>
         <p className="text-muted-foreground">
-          Aqui tienes un resumen de tu actividad en el sistema.
+          Aquí tienes un resumen de tu actividad en el sistema.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.label}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <Card key={stat.label} className="gap-0">
+            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.label}
               </CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <stat.icon className="h-4 w-4" />
+              </span>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">{stat.description}</p>
+              <div className="text-3xl font-bold tracking-tight text-foreground">{stat.value}</div>
+              <p className="mt-1 text-xs text-muted-foreground">{stat.description}</p>
             </CardContent>
           </Card>
         ))}

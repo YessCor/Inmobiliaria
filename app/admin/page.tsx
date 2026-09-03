@@ -25,20 +25,22 @@ export default async function AdminPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">Panel de Administracion</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Panel de Administración</h1>
         <p className="text-muted-foreground">Resumen general del sistema inmobiliario.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {stats.map((stat) => (
-          <Card key={stat.label}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <Card key={stat.label} className="gap-0">
+            <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">{stat.label}</CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <stat.icon className="h-4 w-4" />
+              </span>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-              <p className="text-xs text-muted-foreground">{stat.detail}</p>
+              <div className="text-3xl font-bold tracking-tight text-foreground">{stat.value}</div>
+              <p className="mt-1 text-xs text-muted-foreground">{stat.detail}</p>
             </CardContent>
           </Card>
         ))}
@@ -75,14 +77,14 @@ async function RecentPayments() {
         ) : (
           <div className="flex flex-col gap-3">
             {pagos.map((pago) => (
-              <div key={pago.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+              <div key={pago.id} className="flex items-center justify-between rounded-lg border border-border bg-card p-3 transition-colors hover:bg-muted/40">
                 <div>
                   <p className="text-sm font-medium text-foreground">{pago.nombre} {pago.apellido}</p>
                   <p className="text-xs text-muted-foreground">Lote {pago.lote_codigo}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-semibold text-foreground">{formatCurrency(Number(pago.monto))}</p>
-                  <p className={`text-xs capitalize ${pago.estado === 'aprobado' ? 'text-accent' : pago.estado === 'pendiente' ? 'text-chart-4' : 'text-destructive'}`}>
+                  <p className={`text-xs capitalize ${pago.estado === 'aprobado' ? 'text-primary' : pago.estado === 'pendiente' ? 'text-amber-600 dark:text-amber-500' : 'text-destructive'}`}>
                     {pago.estado}
                   </p>
                 </div>
@@ -115,12 +117,12 @@ async function RecentPqrs() {
         ) : (
           <div className="flex flex-col gap-3">
             {items.map((item) => (
-              <div key={item.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+              <div key={item.id} className="flex items-center justify-between rounded-lg border border-border bg-card p-3 transition-colors hover:bg-muted/40">
                 <div>
                   <p className="text-sm font-medium text-foreground">{item.asunto}</p>
                   <p className="text-xs text-muted-foreground">{item.nombre} {item.apellido} - {item.tipo}</p>
                 </div>
-                <span className={`text-xs capitalize ${item.estado === 'pendiente' ? 'text-chart-4' : item.estado === 'resuelto' ? 'text-accent' : 'text-muted-foreground'}`}>
+                <span className={`text-xs capitalize ${item.estado === 'pendiente' ? 'text-amber-600 dark:text-amber-500' : item.estado === 'resuelto' ? 'text-primary' : 'text-muted-foreground'}`}>
                   {item.estado}
                 </span>
               </div>

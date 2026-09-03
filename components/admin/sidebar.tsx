@@ -39,10 +39,10 @@ export function AdminSidebar({ user, open = false, collapsed = false, onClose }:
   return (
     <aside
       className={cn(
-        'fixed inset-y-0 left-0 z-50 h-screen w-64 transform border-r border-sidebar-border bg-sidebar shadow-lg transition-transform duration-300 md:h-screen',
-        // mobile: controlled by `open`
+        'fixed inset-y-0 left-0 z-50 flex h-screen w-64 transform flex-col border-r border-sidebar-border bg-sidebar shadow-lg transition-transform duration-300',
+        // móvil: controlado por `open`
         open ? 'translate-x-0' : '-translate-x-full',
-        // desktop: visible by default, collapse when `collapsed` is true
+        // escritorio: visible por defecto, se colapsa con `collapsed`
         collapsed ? 'md:-translate-x-full' : 'md:translate-x-0'
       )}
       aria-label="Barra lateral de navegación"
@@ -68,14 +68,15 @@ export function AdminSidebar({ user, open = false, collapsed = false, onClose }:
                 <Link
                   href={link.href}
                   onClick={handleLinkClick}
+                  aria-current={isActive ? 'page' : undefined}
                   className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                    'relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                     isActive
-                      ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                      ? 'bg-sidebar-accent font-semibold text-sidebar-accent-foreground before:absolute before:left-0 before:top-1/2 before:h-5 before:w-1 before:-translate-y-1/2 before:rounded-r-full before:bg-sidebar-primary'
                       : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
                   )}
                 >
-                  <link.icon className="h-4 w-4 shrink-0" />
+                  <link.icon className={cn('h-4 w-4 shrink-0', isActive && 'text-sidebar-primary')} />
                   {link.label}
                 </Link>
               </li>
